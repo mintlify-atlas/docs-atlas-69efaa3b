@@ -1,0 +1,146 @@
+---
+title: Edit my profile
+api: PUT /api/users/me
+description: Update the authenticated user's profile information
+---
+
+## Endpoint
+
+```text
+PUT /api/users/me
+```
+
+## Authentication
+
+Requires a valid JWT access token in the Authorization header.
+
+```text
+Authorization: Bearer <access_token>
+```
+
+## Request Body
+
+<ParamField path="firstName" type="string" required>
+  User's first name
+  
+  **Validation:**
+  - Not blank
+  - 2-50 characters
+  - Letters, spaces, periods, hyphens, and apostrophes only
+</ParamField>
+
+<ParamField path="lastName" type="string" required>
+  User's last name
+  
+  **Validation:**
+  - Not blank
+  - 2-50 characters
+  - Letters, spaces, periods, hyphens, and apostrophes only
+</ParamField>
+
+<Note>
+  Users can only update their first and last name. Email and roles cannot be changed through this endpoint.
+</Note>
+
+## Response
+
+Returns the updated profile information.
+
+<ResponseField name="success" type="boolean">
+  Indicates if the request was successful
+</ResponseField>
+
+<ResponseField name="timestamp" type="string">
+  ISO 8601 timestamp of the response
+</ResponseField>
+
+<ResponseField name="data" type="object">
+  Updated profile data
+  
+  <Expandable title="properties">
+    <ResponseField name="id" type="number">
+      User's unique identifier
+    </ResponseField>
+    
+    <ResponseField name="email" type="string">
+      User's email address (unchanged)
+    </ResponseField>
+    
+    <ResponseField name="firstName" type="string">
+      Updated first name
+    </ResponseField>
+    
+    <ResponseField name="lastName" type="string">
+      Updated last name
+    </ResponseField>
+    
+    <ResponseField name="roles" type="array">
+      User's roles (unchanged)
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+## Example Request
+
+```bash
+curl -X PUT http://localhost:8080/api/users/me \
+  -H "Authorization: Bearer <access_token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "firstName": "Jane",
+    "lastName": "Smith"
+  }'
+```
+
+## Example Response
+
+```json
+{
+  "success": true,
+  "timestamp": "2026-03-03T10:30:00Z",
+  "data": {
+    "id": 1,
+    "email": "john.doe@example.com",
+    "firstName": "Jane",
+    "lastName": "Smith",
+    "roles": ["MEMBER"]
+  }
+}
+```
+
+## Error Responses
+
+<AccordionGroup>
+  <Accordion title="400 Bad Request - Validation Error">
+    ```json
+    {
+      "success": false,
+      "timestamp": "2026-03-03T10:30:00Z",
+      "error": "Validation failed",
+      "details": {
+        "firstName": "Name must be between 2 and 50 characters"
+      }
+    }
+    ```
+    
+    The request body failed validation.
+  </Accordion>
+  
+  <Accordion title="401 Unauthorized">
+    ```json
+    {
+      "success": false,
+      "timestamp": "2026-03-03T10:30:00Z",
+      "error": "Unauthorized"
+    }
+    ```
+    
+    The access token is missing, invalid, or expired.
+  </Accordion>
+</AccordionGroup>
+
+## Source Reference
+
+This endpoint is implemented in:
+- `UserController.java:26-29`
+- Request DTO: `UserEditProfileRequest.java:7-17`

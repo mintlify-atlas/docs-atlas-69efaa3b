@@ -99,8 +99,12 @@
             "group": "Users",
             "pages": [
               "api/users/overview",
+              "api/users/get-my-profile",
+              "api/users/edit-my-profile",
+              "api/users/get-public-profile",
               "api/users/list-users",
               "api/users/get-user",
+              "api/users/create-user",
               "api/users/update-user",
               "api/users/delete-user"
             ]

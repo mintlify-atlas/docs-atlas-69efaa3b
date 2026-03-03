@@ -5,10 +5,16 @@ description: 'Manage users in the Library Management System'
 
 ## Overview
 
-The Users API provides endpoints for managing user accounts in the Library Management System. These endpoints allow administrators to perform CRUD operations on user accounts.
+The Users API provides endpoints for managing user accounts in the Library Management System. It includes both user self-service endpoints and administrative endpoints for managing all users.
 
-## Base URL
+## Base URLs
 
+**User Self-Service:**
+```text
+/api/users
+```
+
+**Administrative:**
 ```text
 /api/management/users
 ```
@@ -23,10 +29,13 @@ Authorization: Bearer <your_jwt_token>
 
 ## Role-Based Access Control
 
-User management endpoints implement role-based access control:
+User endpoints implement role-based access control:
 
-- **ADMIN**: Full access to all user management operations (list, create, read, update, delete)
-- **MEMBER**: No access to user management endpoints
+- **User Self-Service** (`/api/users/*`): Available to all authenticated users
+  - Users can view and edit their own profile
+  - Users can view public profiles of other users
+- **Administrative** (`/api/management/users/*`): Requires ADMIN role
+  - Full access to all user management operations (list, create, read, update, delete)
 
 Users without the required role will receive a `403 Forbidden` response.
 
@@ -64,23 +73,43 @@ For error responses:
 }
 ```
 
-## Endpoints
+## User Self-Service Endpoints
+
+<CardGroup cols={2}>
+  <Card title="Get My Profile" icon="user" href="/api/users/get-my-profile">
+    View your own profile with email and roles
+  </Card>
+  
+  <Card title="Edit My Profile" icon="pen-to-square" href="/api/users/edit-my-profile">
+    Update your first and last name
+  </Card>
+  
+  <Card title="Get Public Profile" icon="eye" href="/api/users/get-public-profile">
+    View another user's public profile
+  </Card>
+</CardGroup>
+
+## Administrative Endpoints
 
 <CardGroup cols={2}>
   <Card title="List Users" icon="list" href="/api/users/list-users">
-    Retrieve a paginated list of all users
+    Retrieve a paginated list of all users (ADMIN)
   </Card>
   
   <Card title="Get User" icon="user" href="/api/users/get-user">
-    Retrieve details of a specific user by ID
+    Retrieve details of a specific user by ID (ADMIN)
   </Card>
   
-  <Card title="Update User" icon="pen-to-square" href="/api/users/update-user">
-    Update an existing user's information
+  <Card title="Create User" icon="plus" href="/api/users/create-user">
+    Create a new user account (ADMIN)
+  </Card>
+  
+  <Card title="Update User" icon="pen" href="/api/users/update-user">
+    Update an existing user's information (ADMIN)
   </Card>
   
   <Card title="Delete User" icon="trash" href="/api/users/delete-user">
-    Delete a user from the system
+    Delete a user from the system (ADMIN)
   </Card>
 </CardGroup>
 

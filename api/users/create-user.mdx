@@ -1,0 +1,196 @@
+---
+title: Create user
+api: POST /api/management/users
+description: Create a new user account (admin only)
+---
+
+## Endpoint
+
+```text
+POST /api/management/users
+```
+
+## Authentication
+
+Requires ADMIN role. Include a valid JWT access token in the Authorization header.
+
+```text
+Authorization: Bearer <admin_access_token>
+```
+
+## Request Body
+
+<ParamField path="email" type="string" required>
+  User's email address
+  
+  **Validation:**
+  - Not blank
+  - Valid email format
+  - Must match pattern: `^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$`
+  - Must be unique in the system
+</ParamField>
+
+<ParamField path="password" type="string" required>
+  User's password
+  
+  **Validation:**
+  - Not blank
+  - Minimum 8 characters
+</ParamField>
+
+<ParamField path="firstName" type="string" required>
+  User's first name
+  
+  **Validation:**
+  - Not blank
+  - 2-50 characters
+  - Letters, spaces, periods, hyphens, and apostrophes only
+</ParamField>
+
+<ParamField path="lastName" type="string" required>
+  User's last name
+  
+  **Validation:**
+  - Not blank
+  - 2-50 characters
+  - Letters, spaces, periods, hyphens, and apostrophes only
+</ParamField>
+
+<ParamField path="roles" type="array" required>
+  Array of role strings to assign to the user
+  
+  **Validation:**
+  - At least one role required
+  - Valid values: `MEMBER`, `ADMIN`
+</ParamField>
+
+## Response
+
+Returns the created user's information (excluding password).
+
+<ResponseField name="success" type="boolean">
+  Indicates if the request was successful
+</ResponseField>
+
+<ResponseField name="timestamp" type="string">
+  ISO 8601 timestamp of the response
+</ResponseField>
+
+<ResponseField name="data" type="object">
+  Created user data
+  
+  <Expandable title="properties">
+    <ResponseField name="id" type="number">
+      Unique identifier of the created user
+    </ResponseField>
+    
+    <ResponseField name="email" type="string">
+      User's email address
+    </ResponseField>
+    
+    <ResponseField name="firstName" type="string">
+      User's first name
+    </ResponseField>
+    
+    <ResponseField name="lastName" type="string">
+      User's last name
+    </ResponseField>
+    
+    <ResponseField name="roles" type="array">
+      Assigned roles
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+## Example Request
+
+```bash
+curl -X POST http://localhost:8080/api/management/users \
+  -H "Authorization: Bearer <admin_access_token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "jane.smith@example.com",
+    "password": "SecurePass123!",
+    "firstName": "Jane",
+    "lastName": "Smith",
+    "roles": ["MEMBER"]
+  }'
+```
+
+## Example Response
+
+```json
+{
+  "success": true,
+  "timestamp": "2026-03-03T10:30:00Z",
+  "data": {
+    "id": 15,
+    "email": "jane.smith@example.com",
+    "firstName": "Jane",
+    "lastName": "Smith",
+    "roles": ["MEMBER"]
+  }
+}
+```
+
+## Error Responses
+
+<AccordionGroup>
+  <Accordion title="400 Bad Request - Validation Error">
+    ```json
+    {
+      "success": false,
+      "timestamp": "2026-03-03T10:30:00Z",
+      "error": "Validation failed",
+      "details": {
+        "password": "Password must be at least 8 characters long",
+        "roles": "At least one role must be assigned"
+      }
+    }
+    ```
+    
+    The request body failed validation.
+  </Accordion>
+  
+  <Accordion title="401 Unauthorized">
+    ```json
+    {
+      "success": false,
+      "timestamp": "2026-03-03T10:30:00Z",
+      "error": "Unauthorized"
+    }
+    ```
+    
+    No valid access token provided.
+  </Accordion>
+  
+  <Accordion title="403 Forbidden">
+    ```json
+    {
+      "success": false,
+      "timestamp": "2026-03-03T10:30:00Z",
+      "error": "Forbidden"
+    }
+    ```
+    
+    The authenticated user does not have ADMIN role.
+  </Accordion>
+  
+  <Accordion title="409 Conflict - Email Already Exists">
+    ```json
+    {
+      "success": false,
+      "timestamp": "2026-03-03T10:30:00Z",
+      "error": "Email already exists"
+    }
+    ```
+    
+    A user with the specified email already exists.
+  </Accordion>
+</AccordionGroup>
+
+## Source Reference
+
+This endpoint is implemented in:
+- `UserManagementController.java:34-39`
+- Request DTO: `UserCreateRequest.java:12-33`

@@ -74,7 +74,7 @@ Requires **ADMIN** role.
 ### Example Request
 
 ```bash
-curl -X PUT "https://api.example.com/api/management/books/1" \
+curl -X PUT "http://localhost:8080/api/management/books/1" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_ADMIN_TOKEN" \
   -d '{
@@ -174,7 +174,7 @@ All fields are optional. Only include fields you want to update.
 ### Example Request
 
 ```bash
-curl -X PATCH "https://api.example.com/api/management/books/1" \
+curl -X PATCH "http://localhost:8080/api/management/books/1" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_ADMIN_TOKEN" \
   -d '{

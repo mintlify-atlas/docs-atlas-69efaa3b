@@ -14,7 +14,7 @@ You can view all books in the library catalog with pagination support.
     Make a GET request to `/api/books` to retrieve paginated books:
 
     ```bash
-    curl https://api.example.com/api/books?page=0&size=20&sort=id
+    curl http://localhost:8080/api/books?page=0&size=20&sort=id
     ```
   </Step>
 
@@ -66,7 +66,7 @@ By default, the book list returns 20 books per page sorted by ID. You can custom
 You can retrieve detailed information about a specific book using its ID.
 
 ```bash
-curl https://api.example.com/api/books/1
+curl http://localhost:8080/api/books/1
 ```
 
 Response:
@@ -116,7 +116,7 @@ Administrators can add new books to the library catalog.
     Make a POST request to `/api/management/books` with the Authorization header:
 
     ```bash
-    curl -X POST https://api.example.com/api/management/books \
+    curl -X POST http://localhost:8080/api/management/books \
       -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
       -H "Content-Type: application/json" \
       -d '{
@@ -177,7 +177,7 @@ Administrators can update existing books with either full updates (PUT) or parti
 Replace all book information with new data:
 
 ```bash
-curl -X PUT https://api.example.com/api/management/books/2 \
+curl -X PUT http://localhost:8080/api/management/books/2 \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -195,7 +195,7 @@ curl -X PUT https://api.example.com/api/management/books/2 \
 Update only specific fields without affecting others:
 
 ```bash
-curl -X PATCH https://api.example.com/api/management/books/2 \
+curl -X PATCH http://localhost:8080/api/management/books/2 \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -216,7 +216,7 @@ Administrators can remove books from the catalog when they're no longer needed.
     Make a DELETE request to `/api/management/books/{id}`:
 
     ```bash
-    curl -X DELETE https://api.example.com/api/management/books/2 \
+    curl -X DELETE http://localhost:8080/api/management/books/2 \
       -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
     ```
   </Step>

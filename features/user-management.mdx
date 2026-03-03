@@ -11,7 +11,7 @@ You can view your private profile information including your account details.
 
 ```bash
 curl -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
-  https://api.example.com/api/users/me
+  http://localhost:8080/api/users/me
 ```
 
 Response:
@@ -48,7 +48,7 @@ You can update your account information at any time.
     Make a PUT request to `/api/users/me`:
 
     ```bash
-    curl -X PUT https://api.example.com/api/users/me \
+    curl -X PUT http://localhost:8080/api/users/me \
       -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
       -H "Content-Type: application/json" \
       -d '{
@@ -94,7 +94,7 @@ You can view the public profile of any user in the system using their user ID.
 
 ```bash
 curl -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
-  https://api.example.com/api/users/2
+  http://localhost:8080/api/users/2
 ```
 
 Response:
@@ -128,7 +128,7 @@ Administrators can browse all user accounts with pagination support.
 
 ```bash
 curl -H "Authorization: Bearer YOUR_ADMIN_ACCESS_TOKEN" \
-  https://api.example.com/api/management/users?page=0&size=20&sort=id
+  http://localhost:8080/api/management/users?page=0&size=20&sort=id
 ```
 
 Response:
@@ -187,7 +187,7 @@ Administrators can create new user accounts and assign roles.
     Make a POST request to `/api/management/users`:
 
     ```bash
-    curl -X POST https://api.example.com/api/management/users \
+    curl -X POST http://localhost:8080/api/management/users \
       -H "Authorization: Bearer YOUR_ADMIN_ACCESS_TOKEN" \
       -H "Content-Type: application/json" \
       -d '{
@@ -226,7 +226,7 @@ Administrators can view detailed information about any user account.
 
 ```bash
 curl -H "Authorization: Bearer YOUR_ADMIN_ACCESS_TOKEN" \
-  https://api.example.com/api/management/users/3
+  http://localhost:8080/api/management/users/3
 ```
 
 ### Update a user account
@@ -234,7 +234,7 @@ curl -H "Authorization: Bearer YOUR_ADMIN_ACCESS_TOKEN" \
 Administrators can modify user accounts including changing roles and personal information.
 
 ```bash
-curl -X PUT https://api.example.com/api/management/users/3 \
+curl -X PUT http://localhost:8080/api/management/users/3 \
   -H "Authorization: Bearer YOUR_ADMIN_ACCESS_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -283,7 +283,7 @@ Administrators can remove user accounts from the system.
     Make a DELETE request to `/api/management/users/{id}`:
 
     ```bash
-    curl -X DELETE https://api.example.com/api/management/users/3 \
+    curl -X DELETE http://localhost:8080/api/management/users/3 \
       -H "Authorization: Bearer YOUR_ADMIN_ACCESS_TOKEN"
     ```
   </Step>

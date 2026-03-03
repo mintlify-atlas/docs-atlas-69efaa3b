@@ -14,7 +14,7 @@ You can view all authors in the system with pagination support.
     Make a GET request to `/api/authors` to retrieve paginated authors:
 
     ```bash
-    curl https://api.example.com/api/authors?page=0&size=20&sort=id
+    curl http://localhost:8080/api/authors?page=0&size=20&sort=id
     ```
   </Step>
 
@@ -61,7 +61,7 @@ By default, the author list returns 20 authors per page sorted by ID. You can cu
 You can retrieve detailed information about a specific author using their ID.
 
 ```bash
-curl https://api.example.com/api/authors/1
+curl http://localhost:8080/api/authors/1
 ```
 
 Response:
@@ -98,7 +98,7 @@ Administrators can add new authors to the system for use when cataloging books.
     Make a POST request to `/api/management/authors` with the Authorization header:
 
     ```bash
-    curl -X POST https://api.example.com/api/management/authors \
+    curl -X POST http://localhost:8080/api/management/authors \
       -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
       -H "Content-Type: application/json" \
       -d '{
@@ -144,7 +144,7 @@ Administrators can update existing author information to correct spelling or upd
     Make a PUT request to `/api/management/authors/{id}`:
 
     ```bash
-    curl -X PUT https://api.example.com/api/management/authors/4 \
+    curl -X PUT http://localhost:8080/api/management/authors/4 \
       -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
       -H "Content-Type: application/json" \
       -d '{
@@ -190,7 +190,7 @@ Administrators can remove authors from the system when they're no longer needed.
     Make a DELETE request to `/api/management/authors/{id}`:
 
     ```bash
-    curl -X DELETE https://api.example.com/api/management/authors/4 \
+    curl -X DELETE http://localhost:8080/api/management/authors/4 \
       -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
     ```
   </Step>
