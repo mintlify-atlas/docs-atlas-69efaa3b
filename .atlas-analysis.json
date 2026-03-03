@@ -1,0 +1,136 @@
+{
+  "projectType": "saas",
+  "projectName": "Library Management System",
+  "projectDescription": "A full-stack library management application with JWT authentication, book catalog management, and user administration built with Next.js and Spring Boot.",
+  "theme": "linden",
+  "primaryColor": "#2563eb",
+  "lightColor": "#3b82f6",
+  "darkColor": "#1e40af",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "quickstart"
+            ]
+          },
+          {
+            "group": "Core Features",
+            "pages": [
+              "features/authentication",
+              "features/book-management",
+              "features/user-management",
+              "features/author-management",
+              "features/category-management"
+            ]
+          },
+          {
+            "group": "Deployment",
+            "pages": [
+              "deployment/docker-setup",
+              "deployment/environment-variables",
+              "deployment/database-configuration"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Authentication",
+            "pages": [
+              "api/auth/register",
+              "api/auth/login",
+              "api/auth/refresh",
+              "api/auth/logout"
+            ]
+          },
+          {
+            "group": "Books",
+            "pages": [
+              "api/books/overview",
+              "api/books/list-books",
+              "api/books/get-book",
+              "api/books/create-book",
+              "api/books/update-book",
+              "api/books/delete-book"
+            ]
+          },
+          {
+            "group": "Authors",
+            "pages": [
+              "api/authors/overview",
+              "api/authors/list-authors",
+              "api/authors/get-author",
+              "api/authors/create-author",
+              "api/authors/update-author",
+              "api/authors/delete-author"
+            ]
+          },
+          {
+            "group": "Categories",
+            "pages": [
+              "api/categories/overview",
+              "api/categories/list-categories",
+              "api/categories/get-category",
+              "api/categories/create-category",
+              "api/categories/update-category",
+              "api/categories/delete-category"
+            ]
+          },
+          {
+            "group": "Users",
+            "pages": [
+              "api/users/overview",
+              "api/users/list-users",
+              "api/users/get-user",
+              "api/users/update-user",
+              "api/users/delete-user"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "JWT-based authentication with refresh tokens",
+    "Complete book catalog management (books, authors, categories)",
+    "User management with role-based access control",
+    "PostgreSQL database with JPA/Hibernate",
+    "Redis caching layer",
+    "Dockerized full-stack deployment",
+    "REST API with Spring Boot",
+    "Modern Next.js frontend with TypeScript and Tailwind CSS"
+  ],
+  "publicApiSurface": [
+    "POST /api/auth/register",
+    "POST /api/auth/login",
+    "POST /api/auth/refresh",
+    "POST /api/auth/logout",
+    "GET /api/books",
+    "GET /api/books/{id}",
+    "POST /api/books",
+    "PUT /api/books/{id}",
+    "PATCH /api/books/{id}",
+    "DELETE /api/books/{id}",
+    "GET /api/authors",
+    "GET /api/authors/{id}",
+    "POST /api/authors",
+    "PUT /api/authors/{id}",
+    "DELETE /api/authors/{id}",
+    "GET /api/categories",
+    "GET /api/categories/{id}",
+    "POST /api/categories",
+    "PUT /api/categories/{id}",
+    "DELETE /api/categories/{id}",
+    "GET /api/users",
+    "GET /api/users/{id}",
+    "PUT /api/users/{id}",
+    "DELETE /api/users/{id}"
+  ]
+}
