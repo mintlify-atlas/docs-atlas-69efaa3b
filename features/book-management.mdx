@@ -1,0 +1,265 @@
+---
+title: Book management
+description: Manage your library's book catalog including creating, updating, and organizing books
+---
+
+The Library Management System provides comprehensive book catalog management capabilities. You can browse the book collection, view detailed information about individual books, and if you're an administrator, manage the entire catalog.
+
+## Browse the book catalog
+
+You can view all books in the library catalog with pagination support.
+
+<Steps>
+  <Step title="Request book list">
+    Make a GET request to `/api/books` to retrieve paginated books:
+
+    ```bash
+    curl https://api.example.com/api/books?page=0&size=20&sort=id
+    ```
+  </Step>
+
+  <Step title="Review book listings">
+    The response includes paginated book data:
+
+    ```json
+    {
+      "success": true,
+      "message": null,
+      "data": {
+        "content": [
+          {
+            "id": 1,
+            "isbn": "978-0-596-52068-7",
+            "title": "JavaScript: The Good Parts",
+            "description": "A comprehensive guide to JavaScript best practices",
+            "coverImageUrl": "https://example.com/covers/js-good-parts.jpg",
+            "authors": [
+              {
+                "id": 1,
+                "name": "Douglas Crockford"
+              }
+            ],
+            "category": {
+              "id": 1,
+              "name": "Programming"
+            }
+          }
+        ],
+        "pageable": {
+          "pageNumber": 0,
+          "pageSize": 20
+        },
+        "totalElements": 150,
+        "totalPages": 8
+      }
+    }
+    ```
+  </Step>
+</Steps>
+
+<Info>
+By default, the book list returns 20 books per page sorted by ID. You can customize pagination using the `page`, `size`, and `sort` query parameters.
+</Info>
+
+## View book details
+
+You can retrieve detailed information about a specific book using its ID.
+
+```bash
+curl https://api.example.com/api/books/1
+```
+
+Response:
+
+```json
+{
+  "success": true,
+  "message": null,
+  "data": {
+    "id": 1,
+    "isbn": "978-0-596-52068-7",
+    "title": "JavaScript: The Good Parts",
+    "description": "A comprehensive guide to JavaScript best practices and patterns",
+    "coverImageUrl": "https://example.com/covers/js-good-parts.jpg",
+    "authors": [
+      {
+        "id": 1,
+        "name": "Douglas Crockford"
+      }
+    ],
+    "category": {
+      "id": 1,
+      "name": "Programming"
+    }
+  }
+}
+```
+
+## Add a new book
+
+<Warning>
+Book management operations require administrator privileges. Ensure you're authenticated with an admin account.
+</Warning>
+
+Administrators can add new books to the library catalog.
+
+<Steps>
+  <Step title="Prepare book information">
+    Gather all required book details including ISBN, title, description, authors, and category.
+
+    <Note>
+    You'll need the IDs of existing authors and categories. Create them first if they don't exist yet.
+    </Note>
+  </Step>
+
+  <Step title="Send create request">
+    Make a POST request to `/api/management/books` with the Authorization header:
+
+    ```bash
+    curl -X POST https://api.example.com/api/management/books \
+      -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "isbn": "978-0-13-468599-1",
+        "title": "Clean Code",
+        "description": "A handbook of agile software craftsmanship",
+        "coverImageUrl": "https://example.com/covers/clean-code.jpg",
+        "authorIds": [2],
+        "categoryId": 1
+      }'
+    ```
+  </Step>
+
+  <Step title="Confirmation">
+    The system returns the newly created book with its assigned ID:
+
+    ```json
+    {
+      "success": true,
+      "message": null,
+      "data": {
+        "id": 2,
+        "isbn": "978-0-13-468599-1",
+        "title": "Clean Code",
+        "description": "A handbook of agile software craftsmanship",
+        "coverImageUrl": "https://example.com/covers/clean-code.jpg",
+        "authors": [
+          {
+            "id": 2,
+            "name": "Robert C. Martin"
+          }
+        ],
+        "category": {
+          "id": 1,
+          "name": "Programming"
+        }
+      }
+    }
+    ```
+  </Step>
+</Steps>
+
+### Book creation requirements
+
+- **ISBN**: Valid ISBN format (checked against ISBN standard)
+- **Title**: 2-255 characters
+- **Description**: Up to 1000 characters
+- **Cover image URL**: Must be a valid URL format
+- **Authors**: At least one author ID must be specified
+- **Category**: A valid category ID is required
+
+## Update a book
+
+Administrators can update existing books with either full updates (PUT) or partial updates (PATCH).
+
+### Full update
+
+Replace all book information with new data:
+
+```bash
+curl -X PUT https://api.example.com/api/management/books/2 \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "isbn": "978-0-13-468599-1",
+    "title": "Clean Code: A Handbook of Agile Software Craftsmanship",
+    "description": "Updated description with more details",
+    "coverImageUrl": "https://example.com/covers/clean-code-updated.jpg",
+    "authorIds": [2],
+    "categoryId": 1
+  }'
+```
+
+### Partial update
+
+Update only specific fields without affecting others:
+
+```bash
+curl -X PATCH https://api.example.com/api/management/books/2 \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "description": "An updated description"
+  }'
+```
+
+<Info>
+Use PATCH when you only need to update a few fields. Use PUT when you want to replace the entire resource.
+</Info>
+
+## Delete a book
+
+Administrators can remove books from the catalog when they're no longer needed.
+
+<Steps>
+  <Step title="Send delete request">
+    Make a DELETE request to `/api/management/books/{id}`:
+
+    ```bash
+    curl -X DELETE https://api.example.com/api/management/books/2 \
+      -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+    ```
+  </Step>
+
+  <Step title="Confirmation">
+    The system confirms the deletion:
+
+    ```json
+    {
+      "success": true,
+      "message": "Book deleted successfully",
+      "data": null
+    }
+    ```
+  </Step>
+</Steps>
+
+<Warning>
+Deleting a book is permanent and cannot be undone. Ensure you have the correct book ID before proceeding.
+</Warning>
+
+## Organizing books with authors and categories
+
+Books in the system are organized using authors and categories:
+
+- **Authors**: Each book can have multiple authors. You must create authors before assigning them to books.
+- **Categories**: Each book belongs to exactly one category. Categories help users browse books by subject.
+
+<Card title="Related workflows" icon="link" href="/features/author-management">
+  Learn how to manage authors in the system
+</Card>
+
+<Card title="Related workflows" icon="link" href="/features/category-management">
+  Learn how to manage categories in the system
+</Card>
+
+## Common book management errors
+
+You may encounter these errors when managing books:
+
+- **Book not found**: The specified book ID doesn't exist in the database
+- **Invalid ISBN**: The ISBN format is incorrect or invalid
+- **Author not found**: One or more specified author IDs don't exist
+- **Category not found**: The specified category ID doesn't exist
+- **Duplicate ISBN**: A book with this ISBN already exists in the catalog
+- **Unauthorized**: You must be an administrator to manage books

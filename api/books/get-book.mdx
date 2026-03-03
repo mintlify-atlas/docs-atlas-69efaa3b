@@ -1,0 +1,133 @@
+---
+title: 'Get Book'
+description: 'Retrieve a specific book by ID'
+api: 'GET /api/books/{id}'
+---
+
+## Endpoint
+
+```
+GET /api/books/{id}
+```
+
+Retrieves detailed information about a specific book.
+
+## Authentication
+
+This endpoint is publicly accessible and does not require authentication.
+
+## Path Parameters
+
+<ParamField path="id" type="long" required>
+  The unique identifier of the book to retrieve
+</ParamField>
+
+## Response
+
+<ResponseField name="success" type="boolean" required>
+  Indicates if the request was successful
+</ResponseField>
+
+<ResponseField name="data" type="object" required>
+  The book object
+  
+  <ResponseField name="id" type="long">
+    Unique identifier for the book
+  </ResponseField>
+  
+  <ResponseField name="isbn" type="string">
+    International Standard Book Number in normalized format (all hyphens and spaces removed)
+  </ResponseField>
+  
+  <ResponseField name="title" type="string">
+    Book title
+  </ResponseField>
+  
+  <ResponseField name="description" type="string">
+    Detailed book description (max 1000 characters)
+  </ResponseField>
+  
+  <ResponseField name="coverImageUrl" type="string">
+    URL to the book's cover image
+  </ResponseField>
+  
+  <ResponseField name="authors" type="array">
+    Array of author objects (many-to-many relationship)
+    
+    <ResponseField name="id" type="long">
+      Author's unique identifier
+    </ResponseField>
+    
+    <ResponseField name="name" type="string">
+      Author's name
+    </ResponseField>
+  </ResponseField>
+  
+  <ResponseField name="category" type="object">
+    Category object the book belongs to
+    
+    <ResponseField name="id" type="long">
+      Category's unique identifier
+    </ResponseField>
+    
+    <ResponseField name="name" type="string">
+      Category name
+    </ResponseField>
+  </ResponseField>
+</ResponseField>
+
+<ResponseField name="message" type="string">
+  Optional message (usually null on success)
+</ResponseField>
+
+## Example Request
+
+```bash
+curl -X GET "https://api.example.com/api/books/1"
+```
+
+## Example Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": 1,
+    "isbn": "9780134685991",
+    "title": "Effective Java",
+    "description": "A comprehensive guide to Java programming best practices and design patterns. This third edition covers Java 7, 8, and 9, including new features like lambdas, streams, and modules.",
+    "coverImageUrl": "https://example.com/covers/effective-java.jpg",
+    "authors": [
+      {
+        "id": 1,
+        "name": "Joshua Bloch"
+      }
+    ],
+    "category": {
+      "id": 2,
+      "name": "Programming"
+    }
+  },
+  "message": null
+}
+```
+
+## Error Responses
+
+### Book Not Found (404)
+
+```json
+{
+  "success": false,
+  "data": null,
+  "message": "Book not found with id: 999"
+}
+```
+
+## Notes
+
+- The ISBN is stored in normalized format (all non-numeric characters except 'X' are removed)
+- Books have a many-to-many relationship with authors - a book can have multiple authors
+- Each book belongs to exactly one category (many-to-one relationship)
+- The `coverImageUrl` field may be null if no cover image is available
+- Source: BookController.java:29-32

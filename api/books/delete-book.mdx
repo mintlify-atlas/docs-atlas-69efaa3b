@@ -1,0 +1,115 @@
+---
+title: 'Delete Book'
+description: 'Delete a book from the library system'
+api: 'DELETE /api/management/books/{id}'
+---
+
+## Endpoint
+
+```
+DELETE /api/management/books/{id}
+```
+
+Permanently deletes a book from the library system.
+
+## Authentication
+
+This endpoint requires authentication with the **ADMIN** role.
+
+## Path Parameters
+
+<ParamField path="id" type="long" required>
+  The unique identifier of the book to delete
+</ParamField>
+
+## Response
+
+<ResponseField name="success" type="boolean" required>
+  Indicates if the request was successful
+</ResponseField>
+
+<ResponseField name="data" type="null">
+  Always null for delete operations
+</ResponseField>
+
+<ResponseField name="message" type="string" required>
+  Success message confirming the deletion
+</ResponseField>
+
+## Example Request
+
+```bash
+curl -X DELETE "https://api.example.com/api/management/books/1" \
+  -H "Authorization: Bearer YOUR_ADMIN_TOKEN"
+```
+
+## Example Response
+
+```json
+{
+  "success": true,
+  "data": null,
+  "message": "Book deleted successfully"
+}
+```
+
+## Error Responses
+
+### Book Not Found (404)
+
+```json
+{
+  "success": false,
+  "data": null,
+  "message": "Book not found with id: 999"
+}
+```
+
+### Unauthorized (401)
+
+```json
+{
+  "success": false,
+  "data": null,
+  "message": "Authentication required"
+}
+```
+
+### Forbidden (403)
+
+```json
+{
+  "success": false,
+  "data": null,
+  "message": "Access denied. ADMIN role required."
+}
+```
+
+### Book In Use (400)
+
+If the book is currently borrowed or has active reservations:
+
+```bash
+{
+  "success": false,
+  "data": null,
+  "message": "Cannot delete book with active loans or reservations"
+}
+```
+
+## Notes
+
+- This operation is **permanent** and cannot be undone
+- Deleting a book does not delete associated authors or categories (only the relationships)
+- The many-to-many relationship between the book and authors is automatically cleaned up
+- Consider the impact on borrowed books or reservations before deletion
+- Only users with the ADMIN role can delete books
+- Source: BookManagementController.java:39-43
+
+## Best Practices
+
+1. **Verify before deletion**: Always confirm the book ID before deletion
+2. **Check dependencies**: Ensure the book is not currently borrowed or reserved
+3. **Consider archiving**: Instead of deleting, consider implementing a soft-delete or archive feature
+4. **Audit trail**: Log all book deletions for audit purposes
+5. **Backup**: Maintain regular backups before performing bulk deletions

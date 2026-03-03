@@ -1,0 +1,135 @@
+---
+title: 'Get User'
+api: 'GET /api/management/users/{id}'
+description: 'Retrieve detailed information about a specific user'
+---
+
+## Endpoint
+
+```text
+GET /api/management/users/{id}
+```
+
+## Authentication
+
+This endpoint requires authentication with a valid JWT token and the **ADMIN** role.
+
+```text
+Authorization: Bearer <your_jwt_token>
+```
+
+## Path Parameters
+
+<ParamField path="id" type="integer" required>
+  The unique identifier of the user to retrieve
+</ParamField>
+
+## Response
+
+Returns detailed information about the specified user.
+
+<ResponseField name="success" type="boolean" required>
+  Indicates if the request was successful
+</ResponseField>
+
+<ResponseField name="timestamp" type="string" required>
+  ISO 8601 timestamp of the response
+</ResponseField>
+
+<ResponseField name="data" type="object" required>
+  User details object
+  
+  <ResponseField name="data.id" type="integer" required>
+    Unique identifier for the user
+  </ResponseField>
+  
+  <ResponseField name="data.email" type="string" required>
+    User's email address (unique in the system)
+  </ResponseField>
+  
+  <ResponseField name="data.firstName" type="string" required>
+    User's first name
+  </ResponseField>
+  
+  <ResponseField name="data.lastName" type="string" required>
+    User's last name
+  </ResponseField>
+  
+  <ResponseField name="data.roles" type="array" required>
+    Array of role strings assigned to the user
+    
+    Available roles:
+    - `MEMBER`: Standard user role
+    - `ADMIN`: Administrator role with full system access
+  </ResponseField>
+</ResponseField>
+
+## Example Request
+
+```bash
+curl -X GET "https://api.example.com/api/management/users/1" \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+```
+
+## Example Response
+
+```json
+{
+  "success": true,
+  "timestamp": "2026-03-03T10:30:00Z",
+  "data": {
+    "id": 1,
+    "email": "john.doe@example.com",
+    "firstName": "John",
+    "lastName": "Doe",
+    "roles": ["ADMIN", "MEMBER"]
+  }
+}
+```
+
+## Error Responses
+
+### 401 Unauthorized
+
+Returned when authentication credentials are missing or invalid.
+
+```json
+{
+  "success": false,
+  "timestamp": "2026-03-03T10:30:00Z",
+  "error": {
+    "code": "UNAUTHORIZED",
+    "message": "Authentication required"
+  }
+}
+```
+
+### 403 Forbidden
+
+Returned when the authenticated user does not have the ADMIN role.
+
+```json
+{
+  "success": false,
+  "timestamp": "2026-03-03T10:30:00Z",
+  "error": {
+    "code": "FORBIDDEN",
+    "message": "Access denied. ADMIN role required."
+  }
+}
+```
+
+### 404 Not Found
+
+Returned when no user exists with the specified ID.
+
+```json
+{
+  "success": false,
+  "timestamp": "2026-03-03T10:30:00Z",
+  "error": {
+    "code": "USER_NOT_FOUND",
+    "message": "User not found with id: 999"
+  }
+}
+```

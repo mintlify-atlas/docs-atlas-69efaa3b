@@ -1,0 +1,63 @@
+---
+title: Refresh token
+description: Obtain new access and refresh tokens
+---
+
+## Endpoint
+
+```http
+POST /api/auth/refresh
+```
+
+Refresh authentication tokens using a valid refresh token. Returns new access and refresh tokens. No authentication required.
+
+## Request body
+
+<ParamField body="refreshToken" type="string" required>
+  Valid refresh token obtained from login or previous refresh.
+</ParamField>
+
+## Response
+
+<ResponseField name="success" type="boolean">
+  Indicates whether the request was successful.
+</ResponseField>
+
+<ResponseField name="timestamp" type="string">
+  ISO 8601 timestamp of when the response was generated.
+</ResponseField>
+
+<ResponseField name="data" type="object">
+  The refresh response data.
+  
+  <ResponseField name="data.accessToken" type="string">
+    New JWT access token for authenticating API requests.
+  </ResponseField>
+  
+  <ResponseField name="data.refreshToken" type="string">
+    New JWT refresh token for future token refreshes.
+  </ResponseField>
+</ResponseField>
+
+## Example request
+
+```bash
+curl -X POST https://api.example.com/api/auth/refresh \
+  -H "Content-Type: application/json" \
+  -d '{
+    "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+  }'
+```
+
+## Example response
+
+```json
+{
+  "success": true,
+  "timestamp": "2026-03-03T10:40:00Z",
+  "data": {
+    "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+  }
+}
+```

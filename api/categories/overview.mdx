@@ -1,0 +1,64 @@
+---
+title: 'Categories API Overview'
+description: 'Manage book categories in the Library Management System'
+---
+
+## Overview
+
+The Categories API allows you to manage book categories in the library system. Categories help organize books by subject, genre, or topic.
+
+## Base URLs
+
+- **Public endpoints**: `/api/categories`
+- **Management endpoints**: `/api/management/categories`
+
+## Authentication
+
+- **Public endpoints** (GET): No authentication required
+- **Management endpoints** (POST, PUT, DELETE): Requires ADMIN role
+
+## Available Endpoints
+
+### Public Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/categories` | List all categories with pagination |
+| GET | `/api/categories/{id}` | Get a specific category by ID |
+
+### Management Endpoints (ADMIN only)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/management/categories` | Create a new category |
+| PUT | `/api/management/categories/{id}` | Update an existing category |
+| DELETE | `/api/management/categories/{id}` | Delete a category |
+
+## Common Response Structure
+
+All endpoints return responses wrapped in an `ApiResponse` object:
+
+```json
+{
+  "success": true,
+  "timestamp": "2026-03-03T10:30:00Z",
+  "data": {...},
+  "message": "Optional message",
+  "error": null
+}
+```
+
+## Category Object
+
+The category object contains:
+
+- `id` (Long): Unique identifier
+- `name` (String): Category name (2-100 characters)
+
+## Pagination
+
+List endpoints support pagination with the following query parameters:
+
+- `page`: Page number (0-indexed, default: 0)
+- `size`: Items per page (default: 20)
+- `sort`: Sort field and direction (default: "id")

@@ -1,0 +1,266 @@
+---
+title: Author management
+description: Manage author records in the Library Management System
+---
+
+The Library Management System allows you to browse authors and their information. Administrators can create, update, and delete author records to keep the catalog organized.
+
+## Browse authors
+
+You can view all authors in the system with pagination support.
+
+<Steps>
+  <Step title="Request author list">
+    Make a GET request to `/api/authors` to retrieve paginated authors:
+
+    ```bash
+    curl https://api.example.com/api/authors?page=0&size=20&sort=id
+    ```
+  </Step>
+
+  <Step title="Review author listings">
+    The response includes paginated author data:
+
+    ```json
+    {
+      "success": true,
+      "message": null,
+      "data": {
+        "content": [
+          {
+            "id": 1,
+            "name": "Douglas Crockford"
+          },
+          {
+            "id": 2,
+            "name": "Robert C. Martin"
+          },
+          {
+            "id": 3,
+            "name": "Martin Fowler"
+          }
+        ],
+        "pageable": {
+          "pageNumber": 0,
+          "pageSize": 20
+        },
+        "totalElements": 45,
+        "totalPages": 3
+      }
+    }
+    ```
+  </Step>
+</Steps>
+
+<Info>
+By default, the author list returns 20 authors per page sorted by ID. You can customize pagination using the `page`, `size`, and `sort` query parameters.
+</Info>
+
+## View author details
+
+You can retrieve detailed information about a specific author using their ID.
+
+```bash
+curl https://api.example.com/api/authors/1
+```
+
+Response:
+
+```json
+{
+  "success": true,
+  "message": null,
+  "data": {
+    "id": 1,
+    "name": "Douglas Crockford"
+  }
+}
+```
+
+<Note>
+In future versions, author details may include additional information such as biography, bibliography, and related books.
+</Note>
+
+## Add a new author
+
+<Warning>
+Author management operations require administrator privileges. Ensure you're authenticated with an admin account.
+</Warning>
+
+Administrators can add new authors to the system for use when cataloging books.
+
+<Steps>
+  <Step title="Prepare author information">
+    Gather the author's name. The name should be their full name as it appears on their published works.
+  </Step>
+
+  <Step title="Send create request">
+    Make a POST request to `/api/management/authors` with the Authorization header:
+
+    ```bash
+    curl -X POST https://api.example.com/api/management/authors \
+      -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "name": "Kent Beck"
+      }'
+    ```
+  </Step>
+
+  <Step title="Confirmation">
+    The system returns the newly created author with their assigned ID:
+
+    ```json
+    {
+      "success": true,
+      "message": null,
+      "data": {
+        "id": 4,
+        "name": "Kent Beck"
+      }
+    }
+    ```
+  </Step>
+</Steps>
+
+### Author creation requirements
+
+- **Name**: 2-100 characters, required
+
+<Info>
+Author names must be between 2 and 100 characters long. Ensure the name is spelled correctly as it will appear in book listings.
+</Info>
+
+## Update an author
+
+Administrators can update existing author information to correct spelling or update their name.
+
+<Steps>
+  <Step title="Identify author to update">
+    Get the ID of the author you want to update.
+  </Step>
+
+  <Step title="Send update request">
+    Make a PUT request to `/api/management/authors/{id}`:
+
+    ```bash
+    curl -X PUT https://api.example.com/api/management/authors/4 \
+      -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "name": "Kent M. Beck"
+      }'
+    ```
+  </Step>
+
+  <Step title="Review updated author">
+    The system returns the updated author information:
+
+    ```json
+    {
+      "success": true,
+      "message": null,
+      "data": {
+        "id": 4,
+        "name": "Kent M. Beck"
+      }
+    }
+    ```
+  </Step>
+</Steps>
+
+<Note>
+Updating an author's name automatically updates their name in all books they've written.
+</Note>
+
+## Delete an author
+
+Administrators can remove authors from the system when they're no longer needed.
+
+<Steps>
+  <Step title="Check for associated books">
+    Before deleting an author, ensure they're not associated with any books in the catalog.
+
+    <Warning>
+    You cannot delete an author who is associated with books. Remove the author from all books first, or delete the books.
+    </Warning>
+  </Step>
+
+  <Step title="Send delete request">
+    Make a DELETE request to `/api/management/authors/{id}`:
+
+    ```bash
+    curl -X DELETE https://api.example.com/api/management/authors/4 \
+      -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+    ```
+  </Step>
+
+  <Step title="Confirmation">
+    The system confirms the deletion:
+
+    ```json
+    {
+      "success": true,
+      "message": "Author deleted successfully",
+      "data": null
+    }
+    ```
+  </Step>
+</Steps>
+
+## Using authors in book management
+
+When creating or updating books, you reference authors by their ID:
+
+```json
+{
+  "isbn": "978-0-13-468599-1",
+  "title": "Clean Code",
+  "description": "A handbook of agile software craftsmanship",
+  "coverImageUrl": "https://example.com/covers/clean-code.jpg",
+  "authorIds": [2, 4],
+  "categoryId": 1
+}
+```
+
+In this example, the book has two authors with IDs 2 and 4.
+
+<Card title="Related workflows" icon="link" href="/features/book-management">
+  Learn how to create and manage books with authors
+</Card>
+
+## Author workflow best practices
+
+Follow these best practices when managing authors:
+
+<Steps>
+  <Step title="Create authors first">
+    Before adding books to your catalog, create the author records you'll need. This makes book creation faster and more efficient.
+  </Step>
+
+  <Step title="Use consistent naming">
+    Be consistent with how you format author names. Decide whether to use full names, initials, or pseudonyms and stick to that format.
+  </Step>
+
+  <Step title="Check for duplicates">
+    Before creating a new author, search the existing author list to ensure you're not creating a duplicate record.
+  </Step>
+
+  <Step title="Handle multiple authors">
+    When a book has multiple authors, include all author IDs in the `authorIds` array when creating or updating the book.
+  </Step>
+</Steps>
+
+## Common author management errors
+
+You may encounter these errors when managing authors:
+
+- **Author not found**: The specified author ID doesn't exist in the database
+- **Duplicate author name**: An author with this exact name already exists
+- **Author in use**: Cannot delete this author because they're associated with one or more books
+- **Invalid name length**: The author name must be between 2 and 100 characters
+- **Unauthorized**: You must be an administrator to manage authors
+
+<Info>
+If you need to delete an author who is associated with books, you have two options: update those books to remove the author association, or delete the books first.
+</Info>

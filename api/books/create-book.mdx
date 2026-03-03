@@ -1,0 +1,213 @@
+---
+title: 'Create Book'
+description: 'Create a new book in the library system'
+api: 'POST /api/management/books'
+---
+
+## Endpoint
+
+```
+POST /api/management/books
+```
+
+Creates a new book in the library system.
+
+## Authentication
+
+This endpoint requires authentication with the **ADMIN** role.
+
+## Request Body
+
+<ParamField body="isbn" type="string" required>
+  International Standard Book Number. Must be a valid ISBN-10 or ISBN-13. The system automatically normalizes the ISBN by removing hyphens and spaces.
+  
+  **Validation**: Cannot be blank, must be valid ISBN format
+</ParamField>
+
+<ParamField body="title" type="string" required>
+  Book title
+  
+  **Validation**: Cannot be blank, must be between 2 and 255 characters
+</ParamField>
+
+<ParamField body="description" type="string" required>
+  Detailed description of the book
+  
+  **Validation**: Cannot be blank, maximum 1000 characters
+</ParamField>
+
+<ParamField body="coverImageUrl" type="string">
+  URL to the book's cover image
+  
+  **Validation**: Must be a valid URL format if provided
+</ParamField>
+
+<ParamField body="authorIds" type="array" required>
+  Array of author IDs to associate with the book. Books have a many-to-many relationship with authors.
+  
+  **Validation**: Cannot be empty, must contain at least one author ID
+  
+  Example: `[1, 2, 3]`
+</ParamField>
+
+<ParamField body="categoryId" type="long" required>
+  ID of the category this book belongs to. Each book must belong to exactly one category.
+  
+  **Validation**: Cannot be null
+</ParamField>
+
+## Response
+
+<ResponseField name="success" type="boolean" required>
+  Indicates if the request was successful
+</ResponseField>
+
+<ResponseField name="data" type="object" required>
+  The created book object
+  
+  <ResponseField name="id" type="long">
+    Unique identifier for the newly created book
+  </ResponseField>
+  
+  <ResponseField name="isbn" type="string">
+    International Standard Book Number in normalized format
+  </ResponseField>
+  
+  <ResponseField name="title" type="string">
+    Book title
+  </ResponseField>
+  
+  <ResponseField name="description" type="string">
+    Book description
+  </ResponseField>
+  
+  <ResponseField name="coverImageUrl" type="string">
+    URL to the book's cover image
+  </ResponseField>
+  
+  <ResponseField name="authors" type="array">
+    Array of associated author objects
+    
+    <ResponseField name="id" type="long">
+      Author's unique identifier
+    </ResponseField>
+    
+    <ResponseField name="name" type="string">
+      Author's name
+    </ResponseField>
+  </ResponseField>
+  
+  <ResponseField name="category" type="object">
+    Category object
+    
+    <ResponseField name="id" type="long">
+      Category's unique identifier
+    </ResponseField>
+    
+    <ResponseField name="name" type="string">
+      Category name
+    </ResponseField>
+  </ResponseField>
+</ResponseField>
+
+<ResponseField name="message" type="string">
+  Optional message
+</ResponseField>
+
+## Example Request
+
+```bash
+curl -X POST "https://api.example.com/api/management/books" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_ADMIN_TOKEN" \
+  -d '{
+    "isbn": "978-0-13-468599-1",
+    "title": "Effective Java",
+    "description": "A comprehensive guide to Java programming best practices and design patterns. This third edition covers Java 7, 8, and 9.",
+    "coverImageUrl": "https://example.com/covers/effective-java.jpg",
+    "authorIds": [1],
+    "categoryId": 2
+  }'
+```
+
+## Example Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": 15,
+    "isbn": "9780134685991",
+    "title": "Effective Java",
+    "description": "A comprehensive guide to Java programming best practices and design patterns. This third edition covers Java 7, 8, and 9.",
+    "coverImageUrl": "https://example.com/covers/effective-java.jpg",
+    "authors": [
+      {
+        "id": 1,
+        "name": "Joshua Bloch"
+      }
+    ],
+    "category": {
+      "id": 2,
+      "name": "Programming"
+    }
+  },
+  "message": null
+}
+```
+
+## Error Responses
+
+### Validation Error (400)
+
+```json
+{
+  "success": false,
+  "data": null,
+  "message": "Validation failed",
+  "errors": {
+    "isbn": "Invalid ISBN format",
+    "authorIds": "At least one author must be specified"
+  }
+}
+```
+
+### Unauthorized (401)
+
+```json
+{
+  "success": false,
+  "data": null,
+  "message": "Authentication required"
+}
+```
+
+### Forbidden (403)
+
+```json
+{
+  "success": false,
+  "data": null,
+  "message": "Access denied. ADMIN role required."
+}
+```
+
+### Duplicate ISBN (400)
+
+```json
+{
+  "success": false,
+  "data": null,
+  "message": "A book with this ISBN already exists"
+}
+```
+
+## Notes
+
+- **ISBN Normalization**: The ISBN is automatically normalized before storage. For example, `978-0-13-468599-1` becomes `9780134685991`
+- **ISBN Validation**: Both ISBN-10 and ISBN-13 formats are accepted and validated using the Hibernate validator
+- **Author Relationship**: Books have a many-to-many relationship with authors. You must provide at least one valid author ID
+- **Category Relationship**: Books have a many-to-one relationship with categories. Each book must belong to exactly one category
+- **Uniqueness**: The ISBN must be unique across all books in the system
+- **Cover Image**: The `coverImageUrl` field is optional but must be a valid URL if provided
+- Source: BookManagementController.java:24-27, BookCreateRequest.java:12-34, Book.java:26-30

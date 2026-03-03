@@ -1,0 +1,132 @@
+---
+title: 'Users API Overview'
+description: 'Manage users in the Library Management System'
+---
+
+## Overview
+
+The Users API provides endpoints for managing user accounts in the Library Management System. These endpoints allow administrators to perform CRUD operations on user accounts.
+
+## Base URL
+
+```text
+/api/management/users
+```
+
+## Authentication
+
+All user management endpoints require authentication via JWT token. The token must be included in the `Authorization` header:
+
+```text
+Authorization: Bearer <your_jwt_token>
+```
+
+## Role-Based Access Control
+
+User management endpoints implement role-based access control:
+
+- **ADMIN**: Full access to all user management operations (list, create, read, update, delete)
+- **MEMBER**: No access to user management endpoints
+
+Users without the required role will receive a `403 Forbidden` response.
+
+## Available Roles
+
+The system supports two user roles:
+
+- `MEMBER`: Standard user with basic access
+- `ADMIN`: Administrator with full system access
+
+## Response Format
+
+All endpoints return responses wrapped in a standard `ApiResponse` object:
+
+```json
+{
+  "success": true,
+  "timestamp": "2026-03-03T10:30:00Z",
+  "data": {
+    // Response data here
+  }
+}
+```
+
+For error responses:
+
+```json
+{
+  "success": false,
+  "timestamp": "2026-03-03T10:30:00Z",
+  "error": {
+    "code": "ERROR_CODE",
+    "message": "Error description"
+  }
+}
+```
+
+## Endpoints
+
+<CardGroup cols={2}>
+  <Card title="List Users" icon="list" href="/api/users/list-users">
+    Retrieve a paginated list of all users
+  </Card>
+  
+  <Card title="Get User" icon="user" href="/api/users/get-user">
+    Retrieve details of a specific user by ID
+  </Card>
+  
+  <Card title="Update User" icon="pen-to-square" href="/api/users/update-user">
+    Update an existing user's information
+  </Card>
+  
+  <Card title="Delete User" icon="trash" href="/api/users/delete-user">
+    Delete a user from the system
+  </Card>
+</CardGroup>
+
+## Common Error Responses
+
+### 401 Unauthorized
+
+Returned when the JWT token is missing, invalid, or expired.
+
+```json
+{
+  "success": false,
+  "timestamp": "2026-03-03T10:30:00Z",
+  "error": {
+    "code": "UNAUTHORIZED",
+    "message": "Authentication required"
+  }
+}
+```
+
+### 403 Forbidden
+
+Returned when the authenticated user lacks the required ADMIN role.
+
+```json
+{
+  "success": false,
+  "timestamp": "2026-03-03T10:30:00Z",
+  "error": {
+    "code": "FORBIDDEN",
+    "message": "Access denied"
+  }
+}
+```
+
+### 404 Not Found
+
+Returned when the requested user does not exist.
+
+```json
+{
+  "success": false,
+  "timestamp": "2026-03-03T10:30:00Z",
+  "error": {
+    "code": "USER_NOT_FOUND",
+    "message": "User not found with id: 123"
+  }
+}
+```

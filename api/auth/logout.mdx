@@ -1,0 +1,47 @@
+---
+title: Logout
+description: Invalidate refresh token and end user session
+---
+
+## Endpoint
+
+```http
+POST /api/auth/logout
+```
+
+Logout a user by invalidating their refresh token. After logout, the refresh token can no longer be used to obtain new access tokens. No authentication required.
+
+## Request body
+
+<ParamField body="refreshToken" type="string" required>
+  Valid refresh token to be invalidated.
+</ParamField>
+
+## Response
+
+<ResponseField name="success" type="boolean">
+  Indicates whether the request was successful.
+</ResponseField>
+
+<ResponseField name="timestamp" type="string">
+  ISO 8601 timestamp of when the response was generated.
+</ResponseField>
+
+## Example request
+
+```bash
+curl -X POST https://api.example.com/api/auth/logout \
+  -H "Content-Type: application/json" \
+  -d '{
+    "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+  }'
+```
+
+## Example response
+
+```json
+{
+  "success": true,
+  "timestamp": "2026-03-03T10:45:00Z"
+}
+```

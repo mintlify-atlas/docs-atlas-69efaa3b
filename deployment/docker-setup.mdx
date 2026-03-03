@@ -1,0 +1,319 @@
+---
+title: Docker setup
+description: Deploy the Library Management System using Docker and Docker Compose
+---
+
+This guide walks you through deploying the Library Management System using Docker containers. The application uses a multi-container setup orchestrated with Docker Compose.
+
+## Prerequisites
+
+Before you begin, ensure you have the following installed on your system:
+
+- [Docker](https://www.docker.com/get-started) (version 20.10 or higher)
+- [Docker Compose](https://docs.docker.com/compose/install/) (version 2.0 or higher)
+
+<Note>
+  The application uses multi-stage Docker builds to optimize image sizes and improve security.
+</Note>
+
+## Quick start
+
+<Steps>
+  <Step title="Clone the repository">
+    Clone the project repository to your local machine:
+    
+    ```bash
+    git clone https://github.com/yigit-7/library-management-system.git
+    cd library-management-system
+    ```
+  </Step>
+
+  <Step title="Configure environment variables">
+    Create a `.env` file from the example template:
+    
+    ```bash
+    cp .env.example .env
+    ```
+    
+    Open the `.env` file and configure the required variables. See the [environment variables](/deployment/environment-variables) page for detailed information.
+  </Step>
+
+  <Step title="Start the application">
+    Launch all services using Docker Compose:
+    
+    ```bash
+    docker compose -f compose.yaml up --build
+    ```
+    
+    The `--build` flag ensures Docker builds the latest images for the frontend and backend services.
+  </Step>
+
+  <Step title="Verify deployment">
+    Once all containers are running, access the application:
+    
+    - Frontend: [http://localhost:3000](http://localhost:3000)
+    - Backend API: [http://localhost:8080](http://localhost:8080)
+    - Health endpoint: [http://localhost:8080/actuator/health](http://localhost:8080/actuator/health)
+  </Step>
+</Steps>
+
+## Container architecture
+
+The application consists of four main services:
+
+### Database service
+
+PostgreSQL 15 database running on Alpine Linux for data persistence.
+
+- **Image:** `postgres:15-alpine`
+- **Container name:** `library-db`
+- **Port mapping:** `5432:5432`
+- **Volume:** `postgres_data:/var/lib/postgresql/data`
+- **Restart policy:** `always`
+
+### Backend service
+
+Spring Boot application handling all business logic and API endpoints.
+
+- **Build context:** `./apps/spring-boot-app`
+- **Container name:** `library-backend`
+- **Port mapping:** `${BACKEND_PORT:-8080}:8080` (defaults to 8080)
+- **Restart policy:** `always`
+- **Dependencies:** Database and cache services must be healthy
+
+### Cache service
+
+Redis cache for improving application performance.
+
+- **Image:** `redis:7-alpine`
+- **Container name:** `library-cache`
+- **Internal port:** `6379`
+- **Restart policy:** `always`
+
+### Frontend service
+
+Next.js application providing the user interface.
+
+- **Build context:** `./apps/nextjs-app`
+- **Container name:** `library-frontend`
+- **Port mapping:** `3000:3000`
+- **Restart policy:** `always`
+- **Dependencies:** Backend service must be healthy
+
+## Health checks
+
+All services include health checks to ensure proper startup sequencing and monitoring.
+
+<CodeGroup>
+
+```yaml Database
+healthcheck:
+  test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+  interval: 10s
+  timeout: 5s
+  retries: 5
+```
+
+```yaml Backend
+healthcheck:
+  test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+  interval: 15s
+  timeout: 5s
+  retries: 5
+  start_period: 30s
+```
+
+```yaml Cache
+healthcheck:
+  test: ["CMD", "redis-cli", "ping"]
+  interval: 10s
+  timeout: 5s
+  retries: 5
+```
+
+```yaml Frontend
+healthcheck:
+  test: ["CMD", "curl", "-f", "http://localhost:3000"]
+  interval: 15s
+  timeout: 5s
+  retries: 5
+  start_period: 20s
+```
+
+</CodeGroup>
+
+<Info>
+  The backend and frontend services have a `start_period` configuration, giving them additional time to initialize before health checks begin.
+</Info>
+
+## Docker build process
+
+### Backend Dockerfile
+
+The Spring Boot application uses a multi-stage build:
+
+<Steps>
+  <Step title="Build stage">
+    Uses `maven:3.9.7-eclipse-temurin-21` to compile the application:
+    
+    - Downloads Maven dependencies
+    - Compiles source code with Java 21
+    - Packages the application as a JAR file
+  </Step>
+
+  <Step title="Runtime stage">
+    Uses `eclipse-temurin:21-jre-alpine` for a minimal runtime:
+    
+    - Installs curl for health checks
+    - Creates a non-privileged user (`appuser`)
+    - Copies the built JAR file
+    - Runs the application as a non-root user
+  </Step>
+</Steps>
+
+### Frontend Dockerfile
+
+The Next.js application also uses a multi-stage build:
+
+<Steps>
+  <Step title="Build stage">
+    Uses `node:24-alpine` to build the application:
+    
+    - Installs npm dependencies
+    - Runs the Next.js build process
+    - Creates an optimized standalone output
+  </Step>
+
+  <Step title="Production stage">
+    Uses `node:24-alpine` for the runtime:
+    
+    - Copies the standalone build artifacts
+    - Runs as the `node` user for security
+    - Serves the application on port 3000
+  </Step>
+</Steps>
+
+## Common commands
+
+<CodeGroup>
+
+```bash Start all services
+docker compose -f compose.yaml up --build
+```
+
+```bash Start in detached mode
+docker compose -f compose.yaml up -d --build
+```
+
+```bash Stop all services
+docker compose -f compose.yaml down
+```
+
+```bash Stop and remove volumes
+docker compose -f compose.yaml down -v
+```
+
+```bash View logs
+# All services
+docker compose -f compose.yaml logs -f
+
+# Specific service
+docker compose -f compose.yaml logs -f backend
+```
+
+```bash Rebuild a specific service
+docker compose -f compose.yaml up -d --build backend
+```
+
+```bash Check service status
+docker compose -f compose.yaml ps
+```
+
+</CodeGroup>
+
+## Infrastructure-only deployment
+
+If you want to run only the database and cache services (for local development), use the infrastructure compose file:
+
+```bash
+docker compose -f compose.infra.yaml up -d
+```
+
+This starts:
+- PostgreSQL database on port 5432
+- Redis cache on port 6379
+
+<Warning>
+  The infrastructure-only setup exposes Redis on port 6379. In production, you should restrict access to Redis and not expose it publicly.
+</Warning>
+
+## Volume management
+
+The application uses a named volume for PostgreSQL data persistence:
+
+```yaml
+volumes:
+  postgres_data:
+```
+
+To back up the database volume:
+
+```bash
+docker run --rm \
+  -v library-management-system_postgres_data:/data \
+  -v $(pwd):/backup \
+  alpine tar czf /backup/postgres-backup.tar.gz -C /data .
+```
+
+To restore from a backup:
+
+```bash
+docker run --rm \
+  -v library-management-system_postgres_data:/data \
+  -v $(pwd):/backup \
+  alpine tar xzf /backup/postgres-backup.tar.gz -C /data
+```
+
+## Troubleshooting
+
+### Container fails to start
+
+Check the container logs:
+
+```bash
+docker compose -f compose.yaml logs backend
+```
+
+### Database connection issues
+
+Verify the database is healthy:
+
+```bash
+docker compose -f compose.yaml ps database
+```
+
+Check database logs:
+
+```bash
+docker compose -f compose.yaml logs database
+```
+
+### Port conflicts
+
+If ports 3000, 5432, or 8080 are already in use, you can modify the port mappings in `compose.yaml` or change the `BACKEND_PORT` in your `.env` file.
+
+### Rebuilding after code changes
+
+After making code changes, rebuild the affected service:
+
+```bash
+# Rebuild backend
+docker compose -f compose.yaml up -d --build backend
+
+# Rebuild frontend
+docker compose -f compose.yaml up -d --build frontend
+```
+
+<Note>
+  The application uses Spring DevTools and Next.js hot reload in development mode. However, these features only work when running the applications directly, not in Docker containers.
+</Note>

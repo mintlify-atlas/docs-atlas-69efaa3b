@@ -1,0 +1,201 @@
+---
+title: 'List Books'
+description: 'Retrieve a paginated list of all books'
+api: 'GET /api/books'
+---
+
+## Endpoint
+
+```
+GET /api/books
+```
+
+Retrieves a paginated list of all books in the library system.
+
+## Authentication
+
+This endpoint is publicly accessible and does not require authentication.
+
+## Query Parameters
+
+<ParamField query="page" type="integer" default="0">
+  Page number (zero-based)
+</ParamField>
+
+<ParamField query="size" type="integer" default="20">
+  Number of items per page
+</ParamField>
+
+<ParamField query="sort" type="string" default="id">
+  Sort field and direction (e.g., `id`, `title,asc`, `isbn,desc`)
+</ParamField>
+
+## Response
+
+<ResponseField name="success" type="boolean" required>
+  Indicates if the request was successful
+</ResponseField>
+
+<ResponseField name="data" type="object" required>
+  Paginated book data
+  
+  <ResponseField name="content" type="array" required>
+    Array of book objects
+    
+    <ResponseField name="id" type="long">
+      Unique identifier for the book
+    </ResponseField>
+    
+    <ResponseField name="isbn" type="string">
+      International Standard Book Number (normalized format)
+    </ResponseField>
+    
+    <ResponseField name="title" type="string">
+      Book title
+    </ResponseField>
+    
+    <ResponseField name="description" type="string">
+      Book description (max 1000 characters)
+    </ResponseField>
+    
+    <ResponseField name="coverImageUrl" type="string">
+      URL to the book's cover image
+    </ResponseField>
+    
+    <ResponseField name="authors" type="array">
+      Array of author objects
+      
+      <ResponseField name="id" type="long">
+        Author's unique identifier
+      </ResponseField>
+      
+      <ResponseField name="name" type="string">
+        Author's name
+      </ResponseField>
+    </ResponseField>
+    
+    <ResponseField name="category" type="object">
+      Category object
+      
+      <ResponseField name="id" type="long">
+        Category's unique identifier
+      </ResponseField>
+      
+      <ResponseField name="name" type="string">
+        Category name
+      </ResponseField>
+    </ResponseField>
+  </ResponseField>
+  
+  <ResponseField name="pageable" type="object">
+    Pagination metadata
+  </ResponseField>
+  
+  <ResponseField name="totalPages" type="integer">
+    Total number of pages
+  </ResponseField>
+  
+  <ResponseField name="totalElements" type="long">
+    Total number of books
+  </ResponseField>
+  
+  <ResponseField name="size" type="integer">
+    Number of items per page
+  </ResponseField>
+  
+  <ResponseField name="number" type="integer">
+    Current page number (zero-based)
+  </ResponseField>
+  
+  <ResponseField name="first" type="boolean">
+    Whether this is the first page
+  </ResponseField>
+  
+  <ResponseField name="last" type="boolean">
+    Whether this is the last page
+  </ResponseField>
+  
+  <ResponseField name="empty" type="boolean">
+    Whether the page is empty
+  </ResponseField>
+</ResponseField>
+
+## Example Request
+
+```bash
+curl -X GET "https://api.example.com/api/books?page=0&size=10&sort=title,asc"
+```
+
+## Example Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "content": [
+      {
+        "id": 1,
+        "isbn": "9780134685991",
+        "title": "Effective Java",
+        "description": "A comprehensive guide to Java programming best practices and design patterns.",
+        "coverImageUrl": "https://example.com/covers/effective-java.jpg",
+        "authors": [
+          {
+            "id": 1,
+            "name": "Joshua Bloch"
+          }
+        ],
+        "category": {
+          "id": 2,
+          "name": "Programming"
+        }
+      },
+      {
+        "id": 2,
+        "isbn": "9780132350884",
+        "title": "Clean Code",
+        "description": "A handbook of agile software craftsmanship.",
+        "coverImageUrl": "https://example.com/covers/clean-code.jpg",
+        "authors": [
+          {
+            "id": 2,
+            "name": "Robert C. Martin"
+          }
+        ],
+        "category": {
+          "id": 2,
+          "name": "Programming"
+        }
+      }
+    ],
+    "pageable": {
+      "sort": {
+        "sorted": true,
+        "unsorted": false,
+        "empty": false
+      },
+      "pageNumber": 0,
+      "pageSize": 10,
+      "offset": 0,
+      "paged": true,
+      "unpaged": false
+    },
+    "totalPages": 5,
+    "totalElements": 42,
+    "size": 10,
+    "number": 0,
+    "first": true,
+    "last": false,
+    "empty": false
+  },
+  "message": null
+}
+```
+
+## Notes
+
+- The default page size is 20 items
+- Results are sorted by `id` by default
+- ISBN values are stored in normalized format (hyphens and spaces removed)
+- Each book must have at least one author (many-to-many relationship)
+- Each book belongs to exactly one category

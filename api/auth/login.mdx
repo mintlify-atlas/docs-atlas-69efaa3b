@@ -1,0 +1,68 @@
+---
+title: Login
+description: Authenticate a user and receive access tokens
+---
+
+## Endpoint
+
+```http
+POST /api/auth/login
+```
+
+Authenticate a user with their email and password. Returns access and refresh tokens for subsequent API requests. No authentication required.
+
+## Request body
+
+<ParamField body="email" type="string" required>
+  User's email address.
+</ParamField>
+
+<ParamField body="password" type="string" required>
+  User's password.
+</ParamField>
+
+## Response
+
+<ResponseField name="success" type="boolean">
+  Indicates whether the request was successful.
+</ResponseField>
+
+<ResponseField name="timestamp" type="string">
+  ISO 8601 timestamp of when the response was generated.
+</ResponseField>
+
+<ResponseField name="data" type="object">
+  The login response data.
+  
+  <ResponseField name="data.accessToken" type="string">
+    JWT access token for authenticating API requests.
+  </ResponseField>
+  
+  <ResponseField name="data.refreshToken" type="string">
+    JWT refresh token for obtaining new access tokens.
+  </ResponseField>
+</ResponseField>
+
+## Example request
+
+```bash
+curl -X POST https://api.example.com/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "john.doe@example.com",
+    "password": "SecurePass123"
+  }'
+```
+
+## Example response
+
+```json
+{
+  "success": true,
+  "timestamp": "2026-03-03T10:35:00Z",
+  "data": {
+    "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+  }
+}
+```

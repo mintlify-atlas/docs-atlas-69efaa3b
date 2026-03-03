@@ -1,0 +1,277 @@
+---
+title: Environment variables
+description: Configure your Library Management System deployment with environment variables
+---
+
+The Library Management System uses environment variables to configure database connections, application ports, and security settings. This page documents all available environment variables.
+
+## Configuration files
+
+The application uses two main configuration sources:
+
+1. **`.env` file** - Root-level environment variables for Docker Compose
+2. **`application.properties`** - Spring Boot application configuration
+
+<Note>
+  Create your `.env` file by copying `.env.example` and filling in the required values.
+</Note>
+
+## Environment variables reference
+
+### PostgreSQL configuration
+
+These variables configure the PostgreSQL database connection.
+
+<ParamField path="POSTGRES_USER" type="string" required>
+  The username for the PostgreSQL database.
+  
+  **Example:** `library_admin`
+</ParamField>
+
+<ParamField path="POSTGRES_PASSWORD" type="string" required>
+  The password for the PostgreSQL database user.
+  
+  **Security:** Use a strong, randomly generated password in production.
+  
+  **Example:** `secure_password_123`
+</ParamField>
+
+<ParamField path="POSTGRES_DB" type="string" required>
+  The name of the PostgreSQL database.
+  
+  **Example:** `library_db`
+</ParamField>
+
+### Backend configuration
+
+<ParamField path="BACKEND_PORT" type="number" default="8080">
+  The port on which the backend server will be exposed on the host machine.
+  
+  The Spring Boot application always runs on port 8080 inside the container. This variable maps the container port to your host.
+  
+  **Example:** `8080`
+</ParamField>
+
+### Spring datasource variables
+
+These variables are set automatically by Docker Compose and consumed by Spring Boot.
+
+<ParamField path="SPRING_DATASOURCE_URL" type="string" required>
+  JDBC connection string for PostgreSQL.
+  
+  **Format:** `jdbc:postgresql://database:5432/${POSTGRES_DB}`
+  
+  **Note:** This is automatically set in `compose.yaml` using the container hostname `database`.
+</ParamField>
+
+<ParamField path="SPRING_DATASOURCE_USERNAME" type="string" required>
+  Database username for Spring Boot.
+  
+  **Value:** Same as `POSTGRES_USER`
+</ParamField>
+
+<ParamField path="SPRING_DATASOURCE_PASSWORD" type="string" required>
+  Database password for Spring Boot.
+  
+  **Value:** Same as `POSTGRES_PASSWORD`
+</ParamField>
+
+### Redis configuration
+
+These variables configure the Redis cache connection.
+
+<ParamField path="SPRING_DATA_REDIS_HOST" type="string" default="cache">
+  Redis server hostname.
+  
+  **Default:** `cache` (the Docker Compose service name)
+</ParamField>
+
+<ParamField path="SPRING_DATA_REDIS_PORT" type="number" default="6379">
+  Redis server port.
+  
+  **Default:** `6379`
+</ParamField>
+
+### Security configuration
+
+<ParamField path="JWT_SECRET_KEY" type="string" required>
+  Secret key used for signing and verifying JWT tokens.
+  
+  **Security considerations:**
+  - Use a strong, randomly generated secret key
+  - Keep this value confidential and never commit it to version control
+  - Rotate this key periodically in production
+  - Minimum recommended length: 256 bits (32 characters)
+  
+  **Generate a secure key:**
+  ```bash
+  openssl rand -base64 32
+  ```
+  
+  **Example:** `your-256-bit-secret-key-here`
+</ParamField>
+
+### Frontend configuration
+
+These variables configure the Next.js frontend application.
+
+<ParamField path="API_INTERNAL_URL" type="string" default="http://backend:8080">
+  Backend API URL for server-side requests (container-to-container).
+  
+  This is used by the Next.js server when making API calls during server-side rendering.
+  
+  **Default:** `http://backend:8080`
+</ParamField>
+
+<ParamField path="NEXT_PUBLIC_API_URL" type="string" default="http://localhost:8080">
+  Backend API URL for client-side requests (browser-to-host).
+  
+  This is used by the browser when making API calls from the client side. The `NEXT_PUBLIC_` prefix makes this variable available to the browser.
+  
+  **Default:** `http://localhost:8080`
+  
+  **Production:** Set this to your public API domain (e.g., `https://api.yourdomain.com`)
+</ParamField>
+
+## Example .env file
+
+Here's a complete example of a `.env` file for local development:
+
+```bash .env
+# PostgreSQL Credentials
+POSTGRES_USER=library_admin
+POSTGRES_PASSWORD=secure_password_123
+POSTGRES_DB=library_db
+
+# Backend Configuration
+BACKEND_PORT=8080
+
+# JWT Secret (generate with: openssl rand -base64 32)
+JWT_SECRET_KEY=your-256-bit-secret-key-here
+```
+
+<Warning>
+  Never commit your `.env` file to version control. The `.gitignore` file already includes this pattern.
+</Warning>
+
+## Spring Boot application properties
+
+The `application.properties` file contains additional configuration that references environment variables.
+
+### JPA and Hibernate settings
+
+```properties
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=true
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
+```
+
+- **`spring.jpa.hibernate.ddl-auto=update`** - Automatically updates the database schema
+- **`spring.jpa.show-sql=true`** - Logs SQL statements (useful for debugging)
+- **`spring.jpa.properties.hibernate.dialect`** - Specifies PostgreSQL dialect
+
+### Actuator endpoints
+
+```properties
+management.endpoints.web.exposure.include=health
+```
+
+Exposes the `/actuator/health` endpoint used for container health checks.
+
+### JWT token configuration
+
+```properties
+application.security.jwt.secret-key=${JWT_SECRET_KEY}
+application.security.jwt.access-token.expiration=900000
+application.security.jwt.refresh-token.expiration=2592000000
+application.security.jwt.refresh-token.cleanup-cron=0 0 3 * * *
+```
+
+- **Access token expiration:** 900,000 ms (15 minutes)
+- **Refresh token expiration:** 2,592,000,000 ms (30 days)
+- **Cleanup cron:** Runs daily at 3:00 AM to remove expired refresh tokens
+
+### DevTools settings
+
+```properties
+spring.devtools.livereload.enabled=true
+spring.devtools.restart.poll-interval=1s
+```
+
+Enables live reload and automatic restart during development.
+
+<Info>
+  DevTools features are automatically disabled when the application runs with a packaged JAR (production mode).
+</Info>
+
+### JSON serialization
+
+```properties
+spring.jackson.serialization.write-dates-as-timestamps=false
+```
+
+Configures Jackson to serialize dates as ISO-8601 strings instead of timestamps.
+
+## Environment-specific configuration
+
+### Development
+
+For local development, use the default values from `.env.example`:
+
+- Database: `localhost:5432`
+- Backend: `localhost:8080`
+- Frontend: `localhost:3000`
+- Redis: `localhost:6379`
+
+### Production
+
+For production deployments, consider:
+
+1. **Use strong passwords** - Generate secure, random passwords for database access
+2. **Rotate JWT secrets** - Change the JWT secret key periodically
+3. **Use HTTPS** - Set `NEXT_PUBLIC_API_URL` to an HTTPS endpoint
+4. **Disable SQL logging** - Set `spring.jpa.show-sql=false`
+5. **Use managed services** - Consider using managed PostgreSQL and Redis services
+6. **Set appropriate DDL mode** - Change `spring.jpa.hibernate.ddl-auto` to `validate` or `none`
+
+## Verifying configuration
+
+You can verify your environment configuration by checking the backend health endpoint:
+
+```bash
+curl http://localhost:8080/actuator/health
+```
+
+A successful response indicates that the backend is properly configured and connected to the database:
+
+```json
+{
+  "status": "UP"
+}
+```
+
+## Troubleshooting
+
+### Database connection failed
+
+If the backend cannot connect to the database:
+
+1. Verify `POSTGRES_USER`, `POSTGRES_PASSWORD`, and `POSTGRES_DB` match in your `.env` file
+2. Check that the database container is healthy: `docker compose ps database`
+3. Review database logs: `docker compose logs database`
+
+### JWT authentication errors
+
+If you encounter JWT-related errors:
+
+1. Ensure `JWT_SECRET_KEY` is set and has sufficient length (minimum 32 characters)
+2. Verify the environment variable is properly passed to the backend container
+3. Check backend logs: `docker compose logs backend`
+
+### Frontend cannot connect to backend
+
+If the frontend cannot reach the backend API:
+
+1. Verify `NEXT_PUBLIC_API_URL` is set correctly
+2. Check that the backend is accessible at the specified URL
+3. Review browser console for CORS or network errors

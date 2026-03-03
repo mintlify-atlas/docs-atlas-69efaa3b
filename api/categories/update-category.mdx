@@ -1,0 +1,173 @@
+---
+title: 'Update Category'
+api: 'PUT /api/management/categories/{id}'
+description: 'Update an existing category'
+---
+
+## Endpoint
+
+```
+PUT /api/management/categories/{id}
+```
+
+## Authentication
+
+**Required**: ADMIN role
+
+This endpoint requires authentication with an admin user account. Include a valid JWT token in the Authorization header.
+
+## Request Headers
+
+```
+Authorization: Bearer <token>
+Content-Type: application/json
+```
+
+## Path Parameters
+
+<ParamField path="id" type="long" required>
+  The unique identifier of the category to update
+</ParamField>
+
+## Request Body
+
+<ParamField body="name" type="string" required>
+  Updated name of the category
+  
+  **Validation**:
+  - Cannot be blank
+  - Must be between 2 and 100 characters
+</ParamField>
+
+## Response
+
+<ResponseField name="success" type="boolean" required>
+  Indicates if the request was successful
+</ResponseField>
+
+<ResponseField name="timestamp" type="string" required>
+  ISO 8601 timestamp of the response
+</ResponseField>
+
+<ResponseField name="data" type="object" required>
+  The updated category object
+  
+  <ResponseField name="id" type="long" required>
+    Unique identifier for the category
+  </ResponseField>
+  
+  <ResponseField name="name" type="string" required>
+    Updated name of the category
+  </ResponseField>
+</ResponseField>
+
+<ResponseField name="message" type="string">
+  Optional message
+</ResponseField>
+
+<ResponseField name="error" type="object">
+  Error details (null on success)
+</ResponseField>
+
+## Example Request
+
+```bash
+curl -X PUT "http://localhost:8080/api/management/categories/1" \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Literary Fiction"
+  }'
+```
+
+## Example Response
+
+### Success (200 OK)
+
+```json
+{
+  "success": true,
+  "timestamp": "2026-03-03T10:30:00Z",
+  "data": {
+    "id": 1,
+    "name": "Literary Fiction"
+  },
+  "message": null,
+  "error": null
+}
+```
+
+### Error - Category Not Found (404)
+
+```json
+{
+  "success": false,
+  "timestamp": "2026-03-03T10:30:00Z",
+  "data": null,
+  "message": null,
+  "error": {
+    "message": "Category not found with id: 999",
+    "details": []
+  }
+}
+```
+
+### Error - Validation Failed (400)
+
+```json
+{
+  "success": false,
+  "timestamp": "2026-03-03T10:30:00Z",
+  "data": null,
+  "message": null,
+  "error": {
+    "message": "Validation failed",
+    "details": [
+      "Category name cannot be blank"
+    ]
+  }
+}
+```
+
+### Error - Unauthorized (401)
+
+```json
+{
+  "success": false,
+  "timestamp": "2026-03-03T10:30:00Z",
+  "data": null,
+  "message": null,
+  "error": {
+    "message": "Unauthorized",
+    "details": []
+  }
+}
+```
+
+### Error - Forbidden (403)
+
+```json
+{
+  "success": false,
+  "timestamp": "2026-03-03T10:30:00Z",
+  "data": null,
+  "message": null,
+  "error": {
+    "message": "Access denied. ADMIN role required.",
+    "details": []
+  }
+}
+```
+
+## Validation Rules
+
+The category name must satisfy the following constraints:
+
+- **Not blank**: The name field is required and cannot be empty or contain only whitespace
+- **Length**: Must be between 2 and 100 characters (inclusive)
+
+## Source Code Reference
+
+Controller: `apps/spring-boot-app/src/main/java/me/seyrek/library_management_system/category/controller/CategoryManagementController.java:29`
+
+DTO: `apps/spring-boot-app/src/main/java/me/seyrek/library_management_system/category/dto/CategoryUpdateRequest.java:6`

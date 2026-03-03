@@ -1,0 +1,506 @@
+---
+title: Database configuration
+description: Set up and configure PostgreSQL for the Library Management System
+---
+
+The Library Management System uses PostgreSQL 15 as its primary database. This guide covers database setup, configuration, and management.
+
+## Database overview
+
+The application uses PostgreSQL for storing all persistent data including:
+
+- User accounts and authentication data
+- Book catalog and metadata
+- Borrowing records and transaction history
+- JWT refresh tokens
+
+<Info>
+  The application uses Spring Data JPA with Hibernate for database interactions, providing an abstraction layer over direct SQL.
+</Info>
+
+## Docker deployment
+
+When using Docker Compose, PostgreSQL is automatically configured and deployed.
+
+### Container configuration
+
+The database service runs PostgreSQL 15 on Alpine Linux:
+
+```yaml compose.yaml
+services:
+  database:
+    image: postgres:15-alpine
+    restart: always
+    container_name: library-db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+```
+
+### Key configuration details
+
+- **Image:** `postgres:15-alpine` - Lightweight PostgreSQL 15 image
+- **Port:** `5432` (standard PostgreSQL port)
+- **Volume:** Named volume `postgres_data` for data persistence
+- **Restart policy:** `always` - Automatically restarts on failure
+- **Health check:** Uses `pg_isready` to verify database availability
+
+## Database credentials
+
+Configure your database credentials in the `.env` file:
+
+```bash .env
+POSTGRES_USER=library_admin
+POSTGRES_PASSWORD=secure_password_123
+POSTGRES_DB=library_db
+```
+
+<Warning>
+  Use strong, unique passwords in production environments. Never use default or example passwords.
+</Warning>
+
+### Password security best practices
+
+<Steps>
+  <Step title="Generate a strong password">
+    Use a password manager or generate a random password:
+    
+    ```bash
+    openssl rand -base64 24
+    ```
+  </Step>
+
+  <Step title="Store securely">
+    Keep your `.env` file secure and never commit it to version control. The repository's `.gitignore` already excludes it.
+  </Step>
+
+  <Step title="Rotate regularly">
+    Change database passwords periodically, especially after team member changes.
+  </Step>
+</Steps>
+
+## Hibernate and JPA configuration
+
+The application uses Spring Data JPA with Hibernate for database operations.
+
+### Schema management
+
+```properties application.properties
+spring.jpa.hibernate.ddl-auto=update
+```
+
+Hibernate's DDL auto mode is set to `update`, which:
+
+- Automatically creates tables on first run
+- Updates schema when entity models change
+- Preserves existing data during updates
+
+<Warning>
+  In production, consider using `validate` or `none` for DDL auto mode, and manage schema changes with migration tools like Flyway or Liquibase.
+</Warning>
+
+### Available DDL modes
+
+| Mode | Behavior | Use Case |
+|------|----------|----------|
+| `create` | Drops and recreates schema on startup | Testing (data loss) |
+| `create-drop` | Creates schema on startup, drops on shutdown | Testing (data loss) |
+| `update` | Updates schema without data loss | Development |
+| `validate` | Validates schema matches entities | Production |
+| `none` | No schema management | Production with migrations |
+
+### SQL logging
+
+```properties application.properties
+spring.jpa.show-sql=true
+```
+
+SQL statement logging is enabled by default for development. This logs all SQL queries to the console.
+
+<Note>
+  Disable SQL logging in production by setting `spring.jpa.show-sql=false` to improve performance and reduce log volume.
+</Note>
+
+### PostgreSQL dialect
+
+```properties application.properties
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
+```
+
+Configures Hibernate to use PostgreSQL-specific SQL features and optimizations.
+
+## Database connection
+
+The Spring Boot application connects to PostgreSQL using environment variables.
+
+### Connection string
+
+```properties application.properties
+spring.datasource.url=${SPRING_DATASOURCE_URL}
+spring.datasource.username=${SPRING_DATASOURCE_USERNAME}
+spring.datasource.password=${SPRING_DATASOURCE_PASSWORD}
+```
+
+In Docker Compose, these variables are set automatically:
+
+```yaml compose.yaml
+environment:
+  SPRING_DATASOURCE_URL: jdbc:postgresql://database:5432/${POSTGRES_DB}
+  SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+  SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+```
+
+### Connection URL format
+
+**Docker Compose (container-to-container):**
+```
+jdbc:postgresql://database:5432/library_db
+```
+
+**Local development (host connection):**
+```
+jdbc:postgresql://localhost:5432/library_db
+```
+
+<Info>
+  The hostname `database` refers to the Docker Compose service name, enabling container-to-container communication.
+</Info>
+
+## Data persistence
+
+PostgreSQL data is stored in a named Docker volume to ensure persistence across container restarts.
+
+### Volume configuration
+
+```yaml compose.yaml
+volumes:
+  postgres_data:
+```
+
+This creates a volume named `library-management-system_postgres_data` (prefixed with the project name).
+
+### Managing the data volume
+
+<CodeGroup>
+
+```bash Inspect volume
+docker volume inspect library-management-system_postgres_data
+```
+
+```bash List all volumes
+docker volume ls
+```
+
+```bash Remove volume (data loss!)
+docker compose down -v
+```
+
+</CodeGroup>
+
+<Warning>
+  Using `docker compose down -v` will delete all database data. Only use this when you want to completely reset the database.
+</Warning>
+
+## Database backups
+
+Regular backups are essential for production environments.
+
+### Create a backup
+
+<Steps>
+  <Step title="Using pg_dump">
+    Export the database to a SQL file:
+    
+    ```bash
+    docker exec library-db pg_dump -U library_admin library_db > backup.sql
+    ```
+  </Step>
+
+  <Step title="Using volume backup">
+    Create a compressed backup of the entire data volume:
+    
+    ```bash
+    docker run --rm \
+      -v library-management-system_postgres_data:/data \
+      -v $(pwd):/backup \
+      alpine tar czf /backup/postgres-backup.tar.gz -C /data .
+    ```
+  </Step>
+
+  <Step title="Verify backup">
+    Check the backup file was created:
+    
+    ```bash
+    ls -lh backup.sql
+    # or
+    ls -lh postgres-backup.tar.gz
+    ```
+  </Step>
+</Steps>
+
+### Restore from backup
+
+<CodeGroup>
+
+```bash SQL backup
+# Drop and recreate the database
+docker exec library-db psql -U library_admin -c "DROP DATABASE library_db;"
+docker exec library-db psql -U library_admin -c "CREATE DATABASE library_db;"
+
+# Restore from SQL file
+docker exec -i library-db psql -U library_admin library_db < backup.sql
+```
+
+```bash Volume backup
+# Stop the database container
+docker compose stop database
+
+# Restore the volume
+docker run --rm \
+  -v library-management-system_postgres_data:/data \
+  -v $(pwd):/backup \
+  alpine tar xzf /backup/postgres-backup.tar.gz -C /data
+
+# Start the database container
+docker compose start database
+```
+
+</CodeGroup>
+
+## Health checks
+
+The database container includes a health check to ensure availability before dependent services start.
+
+```yaml compose.yaml
+healthcheck:
+  test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+  interval: 10s
+  timeout: 5s
+  retries: 5
+```
+
+### Health check parameters
+
+- **Test command:** `pg_isready` checks if PostgreSQL is accepting connections
+- **Interval:** Runs every 10 seconds
+- **Timeout:** Fails if the check takes more than 5 seconds
+- **Retries:** Allows 5 failures before marking as unhealthy
+
+### Check database health
+
+```bash
+docker compose ps database
+```
+
+Look for the "STATUS" column - it should show "Up" with "(healthy)":
+
+```
+NAME          STATUS                    PORTS
+library-db    Up 2 minutes (healthy)    0.0.0.0:5432->5432/tcp
+```
+
+## Connecting to the database
+
+You can connect to the PostgreSQL database directly for administration or debugging.
+
+### Using psql in the container
+
+```bash
+docker exec -it library-db psql -U library_admin -d library_db
+```
+
+### Using a database client
+
+Connect using any PostgreSQL client with these credentials:
+
+- **Host:** `localhost`
+- **Port:** `5432`
+- **Database:** `library_db` (or your configured name)
+- **Username:** `library_admin` (or your configured username)
+- **Password:** Your configured password
+
+### Common psql commands
+
+Once connected to the database:
+
+```sql
+-- List all tables
+\dt
+
+-- Describe a table structure
+\d table_name
+
+-- List all databases
+\l
+
+-- List all users
+\du
+
+-- Exit psql
+\q
+```
+
+## Performance optimization
+
+### Connection pooling
+
+Spring Boot automatically configures HikariCP connection pooling with sensible defaults. You can customize the pool size in `application.properties`:
+
+```properties
+spring.datasource.hikari.maximum-pool-size=10
+spring.datasource.hikari.minimum-idle=5
+spring.datasource.hikari.connection-timeout=30000
+```
+
+### Database indexing
+
+Ensure proper indexes are defined in your JPA entities using annotations:
+
+```java
+@Entity
+@Table(indexes = {
+    @Index(name = "idx_user_email", columnList = "email"),
+    @Index(name = "idx_book_isbn", columnList = "isbn")
+})
+public class User {
+    // ...
+}
+```
+
+## Troubleshooting
+
+### Database container won't start
+
+<Steps>
+  <Step title="Check logs">
+    View the database container logs:
+    
+    ```bash
+    docker compose logs database
+    ```
+  </Step>
+
+  <Step title="Verify credentials">
+    Ensure your `.env` file has all required variables:
+    - `POSTGRES_USER`
+    - `POSTGRES_PASSWORD`
+    - `POSTGRES_DB`
+  </Step>
+
+  <Step title="Check port conflicts">
+    Verify port 5432 is not in use:
+    
+    ```bash
+    lsof -i :5432
+    ```
+  </Step>
+</Steps>
+
+### Backend cannot connect to database
+
+<Steps>
+  <Step title="Verify database is healthy">
+    ```bash
+    docker compose ps database
+    ```
+    
+    The status should show "(healthy)".
+  </Step>
+
+  <Step title="Check connection string">
+    Ensure the JDBC URL uses the correct hostname:
+    - Docker: `jdbc:postgresql://database:5432/library_db`
+    - Local: `jdbc:postgresql://localhost:5432/library_db`
+  </Step>
+
+  <Step title="Verify credentials match">
+    The credentials in your `.env` file must match for both:
+    - `POSTGRES_USER` and `SPRING_DATASOURCE_USERNAME`
+    - `POSTGRES_PASSWORD` and `SPRING_DATASOURCE_PASSWORD`
+  </Step>
+</Steps>
+
+### Schema update errors
+
+If Hibernate fails to update the schema:
+
+1. **Check entity definitions** - Ensure JPA entities are properly annotated
+2. **Review SQL logs** - Enable `spring.jpa.show-sql=true` to see what Hibernate is attempting
+3. **Manual migration** - For complex changes, consider creating manual migration scripts
+4. **Restart fresh** - As a last resort, drop and recreate the database:
+   ```bash
+   docker compose down -v
+   docker compose up -d
+   ```
+
+<Warning>
+  Dropping the database volume will delete all data. Only do this in development environments.
+</Warning>
+
+## Production considerations
+
+### Use managed database services
+
+For production deployments, consider using managed PostgreSQL services:
+
+- AWS RDS for PostgreSQL
+- Google Cloud SQL for PostgreSQL
+- Azure Database for PostgreSQL
+- DigitalOcean Managed Databases
+
+Managed services provide:
+- Automated backups
+- High availability
+- Automated updates
+- Monitoring and alerting
+- Scalability
+
+### Security hardening
+
+<Steps>
+  <Step title="Use strong passwords">
+    Generate cryptographically secure passwords for database users.
+  </Step>
+
+  <Step title="Restrict network access">
+    Don't expose port 5432 publicly. Use private networks or VPNs.
+  </Step>
+
+  <Step title="Enable SSL/TLS">
+    Configure PostgreSQL to require encrypted connections.
+  </Step>
+
+  <Step title="Regular updates">
+    Keep PostgreSQL updated to the latest security patches.
+  </Step>
+
+  <Step title="Audit logging">
+    Enable PostgreSQL audit logging for compliance requirements.
+  </Step>
+</Steps>
+
+### Monitoring
+
+Monitor key database metrics:
+
+- Connection pool utilization
+- Query performance and slow queries
+- Database size and growth rate
+- Cache hit ratios
+- Replication lag (if using replicas)
+
+Consider using tools like:
+- pg_stat_statements for query analysis
+- pgBadger for log analysis
+- Prometheus with postgres_exporter
+- Datadog, New Relic, or similar APM tools

@@ -1,0 +1,152 @@
+---
+title: 'Create Category'
+api: 'POST /api/management/categories'
+description: 'Create a new category'
+---
+
+## Endpoint
+
+```
+POST /api/management/categories
+```
+
+## Authentication
+
+**Required**: ADMIN role
+
+This endpoint requires authentication with an admin user account. Include a valid JWT token in the Authorization header.
+
+## Request Headers
+
+```
+Authorization: Bearer <token>
+Content-Type: application/json
+```
+
+## Request Body
+
+<ParamField body="name" type="string" required>
+  Name of the category
+  
+  **Validation**:
+  - Cannot be blank
+  - Must be between 2 and 100 characters
+</ParamField>
+
+## Response
+
+<ResponseField name="success" type="boolean" required>
+  Indicates if the request was successful
+</ResponseField>
+
+<ResponseField name="timestamp" type="string" required>
+  ISO 8601 timestamp of the response
+</ResponseField>
+
+<ResponseField name="data" type="object" required>
+  The created category object
+  
+  <ResponseField name="id" type="long" required>
+    Unique identifier for the newly created category
+  </ResponseField>
+  
+  <ResponseField name="name" type="string" required>
+    Name of the category
+  </ResponseField>
+</ResponseField>
+
+<ResponseField name="message" type="string">
+  Optional message
+</ResponseField>
+
+<ResponseField name="error" type="object">
+  Error details (null on success)
+</ResponseField>
+
+## Example Request
+
+```bash
+curl -X POST "http://localhost:8080/api/management/categories" \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Science Fiction"
+  }'
+```
+
+## Example Response
+
+### Success (200 OK)
+
+```json
+{
+  "success": true,
+  "timestamp": "2026-03-03T10:30:00Z",
+  "data": {
+    "id": 4,
+    "name": "Science Fiction"
+  },
+  "message": null,
+  "error": null
+}
+```
+
+### Error - Validation Failed (400)
+
+```json
+{
+  "success": false,
+  "timestamp": "2026-03-03T10:30:00Z",
+  "data": null,
+  "message": null,
+  "error": {
+    "message": "Validation failed",
+    "details": [
+      "Category name must be between 2 and 100 characters"
+    ]
+  }
+}
+```
+
+### Error - Unauthorized (401)
+
+```json
+{
+  "success": false,
+  "timestamp": "2026-03-03T10:30:00Z",
+  "data": null,
+  "message": null,
+  "error": {
+    "message": "Unauthorized",
+    "details": []
+  }
+}
+```
+
+### Error - Forbidden (403)
+
+```json
+{
+  "success": false,
+  "timestamp": "2026-03-03T10:30:00Z",
+  "data": null,
+  "message": null,
+  "error": {
+    "message": "Access denied. ADMIN role required.",
+    "details": []
+  }
+}
+```
+
+## Validation Rules
+
+The category name must satisfy the following constraints:
+
+- **Not blank**: The name field is required and cannot be empty or contain only whitespace
+- **Length**: Must be between 2 and 100 characters (inclusive)
+
+## Source Code Reference
+
+Controller: `apps/spring-boot-app/src/main/java/me/seyrek/library_management_system/category/controller/CategoryManagementController.java:24`
+
+DTO: `apps/spring-boot-app/src/main/java/me/seyrek/library_management_system/category/dto/CategoryCreateRequest.java:6`

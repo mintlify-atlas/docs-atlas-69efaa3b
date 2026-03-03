@@ -1,0 +1,324 @@
+---
+title: User management
+description: Manage user accounts, profiles, and roles in the Library Management System
+---
+
+The Library Management System provides user management capabilities at two levels: users can manage their own profiles, and administrators can manage all user accounts in the system.
+
+## View your profile
+
+You can view your private profile information including your account details.
+
+```bash
+curl -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  https://api.example.com/api/users/me
+```
+
+Response:
+
+```json
+{
+  "success": true,
+  "message": null,
+  "data": {
+    "id": 1,
+    "email": "john.doe@example.com",
+    "firstName": "John",
+    "lastName": "Doe",
+    "roles": ["USER"],
+    "createdAt": "2024-01-15T10:30:00Z"
+  }
+}
+```
+
+<Info>
+Your private profile includes sensitive information like your email address. Other users can only see your public profile.
+</Info>
+
+## Edit your profile
+
+You can update your account information at any time.
+
+<Steps>
+  <Step title="Prepare updated information">
+    Decide which fields you want to update. You can change your first name, last name, or password.
+  </Step>
+
+  <Step title="Send update request">
+    Make a PUT request to `/api/users/me`:
+
+    ```bash
+    curl -X PUT https://api.example.com/api/users/me \
+      -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "firstName": "John",
+        "lastName": "Smith",
+        "password": "NewSecurePass123!"
+      }'
+    ```
+
+    <Note>
+    If you don't want to change your password, omit the password field from the request.
+    </Note>
+  </Step>
+
+  <Step title="Review confirmation">
+    The system returns your updated profile:
+
+    ```json
+    {
+      "success": true,
+      "message": null,
+      "data": {
+        "id": 1,
+        "email": "john.doe@example.com",
+        "firstName": "John",
+        "lastName": "Smith",
+        "updatedAt": "2024-01-20T14:25:00Z"
+      }
+    }
+    ```
+  </Step>
+</Steps>
+
+### Profile update requirements
+
+- **First name**: 2-50 characters, letters and common name characters only
+- **Last name**: 2-50 characters, letters and common name characters only
+- **Password**: Minimum 8 characters (optional in update requests)
+
+## View public profiles
+
+You can view the public profile of any user in the system using their user ID.
+
+```bash
+curl -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  https://api.example.com/api/users/2
+```
+
+Response:
+
+```json
+{
+  "success": true,
+  "message": null,
+  "data": {
+    "id": 2,
+    "firstName": "Jane",
+    "lastName": "Williams",
+    "joinedAt": "2024-01-10T09:00:00Z"
+  }
+}
+```
+
+<Info>
+Public profiles show limited information and don't include sensitive data like email addresses.
+</Info>
+
+## Administrator functions
+
+<Warning>
+The following operations require administrator privileges. Ensure you're authenticated with an admin account.
+</Warning>
+
+### View all users
+
+Administrators can browse all user accounts with pagination support.
+
+```bash
+curl -H "Authorization: Bearer YOUR_ADMIN_ACCESS_TOKEN" \
+  https://api.example.com/api/management/users?page=0&size=20&sort=id
+```
+
+Response:
+
+```json
+{
+  "success": true,
+  "message": null,
+  "data": {
+    "content": [
+      {
+        "id": 1,
+        "email": "john.doe@example.com",
+        "firstName": "John",
+        "lastName": "Doe",
+        "roles": ["USER"],
+        "createdAt": "2024-01-15T10:30:00Z"
+      },
+      {
+        "id": 2,
+        "email": "jane.williams@example.com",
+        "firstName": "Jane",
+        "lastName": "Williams",
+        "roles": ["USER", "ADMIN"],
+        "createdAt": "2024-01-10T09:00:00Z"
+      }
+    ],
+    "pageable": {
+      "pageNumber": 0,
+      "pageSize": 20
+    },
+    "totalElements": 45,
+    "totalPages": 3
+  }
+}
+```
+
+<Info>
+By default, the user list returns 20 users per page sorted by ID. Customize pagination using the `page`, `size`, and `sort` query parameters.
+</Info>
+
+### Create a user account
+
+Administrators can create new user accounts and assign roles.
+
+<Steps>
+  <Step title="Prepare account details">
+    Gather the required user information including email, password, name, and roles.
+
+    <Note>
+    When creating a user as an administrator, you can assign multiple roles including USER and ADMIN.
+    </Note>
+  </Step>
+
+  <Step title="Send create request">
+    Make a POST request to `/api/management/users`:
+
+    ```bash
+    curl -X POST https://api.example.com/api/management/users \
+      -H "Authorization: Bearer YOUR_ADMIN_ACCESS_TOKEN" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "email": "alice.johnson@example.com",
+        "password": "SecurePass123!",
+        "firstName": "Alice",
+        "lastName": "Johnson",
+        "roles": ["USER"]
+      }'
+    ```
+  </Step>
+
+  <Step title="Review new user">
+    The system returns the newly created user account:
+
+    ```json
+    {
+      "success": true,
+      "message": null,
+      "data": {
+        "id": 3,
+        "email": "alice.johnson@example.com",
+        "firstName": "Alice",
+        "lastName": "Johnson",
+        "roles": ["USER"],
+        "createdAt": "2024-01-21T11:15:00Z"
+      }
+    }
+    ```
+  </Step>
+</Steps>
+
+### View user details
+
+Administrators can view detailed information about any user account.
+
+```bash
+curl -H "Authorization: Bearer YOUR_ADMIN_ACCESS_TOKEN" \
+  https://api.example.com/api/management/users/3
+```
+
+### Update a user account
+
+Administrators can modify user accounts including changing roles and personal information.
+
+```bash
+curl -X PUT https://api.example.com/api/management/users/3 \
+  -H "Authorization: Bearer YOUR_ADMIN_ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "alice.johnson@example.com",
+    "firstName": "Alice",
+    "lastName": "Johnson-Smith",
+    "roles": ["USER", "ADMIN"]
+  }'
+```
+
+Response:
+
+```json
+{
+  "success": true,
+  "message": null,
+  "data": {
+    "id": 3,
+    "email": "alice.johnson@example.com",
+    "firstName": "Alice",
+    "lastName": "Johnson-Smith",
+    "roles": ["USER", "ADMIN"],
+    "updatedAt": "2024-01-21T15:30:00Z"
+  }
+}
+```
+
+<Info>
+Administrator updates allow changing roles, which regular users cannot do for themselves.
+</Info>
+
+### Delete a user account
+
+Administrators can remove user accounts from the system.
+
+<Steps>
+  <Step title="Identify user to delete">
+    Ensure you have the correct user ID for the account you want to remove.
+
+    <Warning>
+    Deleting a user account is permanent and cannot be undone. All associated data may be affected.
+    </Warning>
+  </Step>
+
+  <Step title="Send delete request">
+    Make a DELETE request to `/api/management/users/{id}`:
+
+    ```bash
+    curl -X DELETE https://api.example.com/api/management/users/3 \
+      -H "Authorization: Bearer YOUR_ADMIN_ACCESS_TOKEN"
+    ```
+  </Step>
+
+  <Step title="Confirmation">
+    The system confirms the deletion:
+
+    ```json
+    {
+      "success": true,
+      "message": null,
+      "data": null
+    }
+    ```
+  </Step>
+</Steps>
+
+## User roles
+
+The system supports role-based access control with the following roles:
+
+- **USER**: Standard user role with access to basic features like browsing books, viewing profiles, and managing their own profile
+- **ADMIN**: Administrator role with full access to management functions including user management, book catalog management, and system configuration
+
+<Note>
+Users can have multiple roles. For example, a user can be both USER and ADMIN, which gives them both standard and administrative privileges.
+</Note>
+
+## Common user management errors
+
+You may encounter these errors when managing users:
+
+- **User not found**: The specified user ID doesn't exist in the database
+- **Email already exists**: This email is already registered with another account
+- **Invalid email format**: The email address format is incorrect
+- **Unauthorized**: You don't have permission to perform this operation
+- **Cannot delete yourself**: Administrators cannot delete their own account
+- **At least one role required**: Every user must have at least one role assigned

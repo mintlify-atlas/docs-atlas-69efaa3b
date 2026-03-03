@@ -1,0 +1,129 @@
+---
+title: Introduction
+description: Welcome to the Library Management System - a modern, full-stack solution for managing library operations
+---
+
+<img
+  className="block dark:hidden"
+  src="/images/hero-light.svg"
+  alt="Library Management System Hero"
+/>
+<img
+  className="hidden dark:block"
+  src="/images/hero-dark.svg"
+  alt="Library Management System Hero"
+/>
+
+## What is Library Management System?
+
+Library Management System is a full-stack application that automates core library tasks with a modern tech stack. Built with Next.js and Spring Boot, it features secure JWT authentication, efficient book and user management, and a responsive user interface.
+
+## Architecture overview
+
+The system is designed as a containerized monorepo with separate frontend and backend applications:
+
+<CardGroup cols={2}>
+  <Card title="Spring Boot backend" icon="java">
+    RESTful API built with Java 21, Spring Boot 3.5, and Spring Data JPA
+  </Card>
+  <Card title="Next.js frontend" icon="react">
+    Modern UI built with Next.js, React, TypeScript, and Tailwind CSS
+  </Card>
+  <Card title="PostgreSQL database" icon="database">
+    Persistent data storage with PostgreSQL 15
+  </Card>
+  <Card title="Redis cache" icon="bolt">
+    High-performance caching layer with Redis 7
+  </Card>
+</CardGroup>
+
+## Key features
+
+<AccordionGroup>
+  <Accordion title="Secure authentication" icon="shield">
+    JWT-based authentication system with token refresh capabilities and secure session management
+  </Accordion>
+  
+  <Accordion title="Book management" icon="book">
+    Complete CRUD operations for books including categorization, author association, and inventory tracking
+  </Accordion>
+  
+  <Accordion title="User management" icon="users">
+    Comprehensive user administration with role-based access control
+  </Accordion>
+  
+  <Accordion title="Author & category management" icon="folder">
+    Organize your library with flexible author and category systems
+  </Accordion>
+  
+  <Accordion title="API-first design" icon="code">
+    Well-documented REST API with OpenAPI/Swagger integration
+  </Accordion>
+</AccordionGroup>
+
+## Quick navigation
+
+<CardGroup cols={2}>
+  <Card
+    title="Quickstart"
+    icon="rocket"
+    href="/quickstart"
+  >
+    Get your library system running in minutes with Docker
+  </Card>
+  <Card
+    title="Authentication"
+    icon="key"
+    href="/features/authentication"
+  >
+    Learn about the JWT authentication system
+  </Card>
+  <Card
+    title="API reference"
+    icon="code"
+    href="/api/auth/register"
+  >
+    Explore the complete API documentation
+  </Card>
+  <Card
+    title="Docker setup"
+    icon="docker"
+    href="/deployment/docker-setup"
+  >
+    Deploy with Docker Compose for production
+  </Card>
+</CardGroup>
+
+## Technology stack
+
+### Backend technologies
+
+- **Java 21** - Modern Java with latest language features
+- **Spring Boot 3.5** - Production-ready application framework
+- **Spring Security** - Comprehensive security framework
+- **Spring Data JPA** - Simplified data access layer
+- **Spring Data Redis** - Redis integration for caching
+- **PostgreSQL driver** - Database connectivity
+- **Lombok** - Reduce boilerplate code
+- **MapStruct** - Type-safe bean mapping
+- **JWT (jjwt)** - JSON Web Token implementation
+- **SpringDoc OpenAPI** - API documentation
+- **Maven** - Build automation and dependency management
+
+### Frontend technologies
+
+- **Next.js 16** - React framework with server-side rendering
+- **React 19** - Component-based UI library
+- **TypeScript 5** - Type-safe JavaScript
+- **Tailwind CSS 4** - Utility-first CSS framework
+
+### Infrastructure
+
+- **Docker** - Container platform
+- **Docker Compose** - Multi-container orchestration
+- **PostgreSQL 15** - Relational database
+- **Redis 7** - In-memory data store
+
+## Get started
+
+Ready to get started? Follow the [quickstart guide](/quickstart) to have your library system up and running in under 5 minutes.

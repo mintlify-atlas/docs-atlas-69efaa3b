@@ -1,0 +1,305 @@
+---
+title: Category management
+description: Organize your library's book collection with categories
+---
+
+The Library Management System uses categories to organize books by subject or genre. You can browse categories, and administrators can create, update, and delete category records to maintain the organizational structure.
+
+## Browse categories
+
+You can view all categories in the system with pagination support.
+
+<Steps>
+  <Step title="Request category list">
+    Make a GET request to `/api/categories` to retrieve paginated categories:
+
+    ```bash
+    curl https://api.example.com/api/categories?page=0&size=20&sort=id
+    ```
+  </Step>
+
+  <Step title="Review category listings">
+    The response includes paginated category data:
+
+    ```json
+    {
+      "success": true,
+      "message": null,
+      "data": {
+        "content": [
+          {
+            "id": 1,
+            "name": "Programming"
+          },
+          {
+            "id": 2,
+            "name": "Science Fiction"
+          },
+          {
+            "id": 3,
+            "name": "Biography"
+          }
+        ],
+        "pageable": {
+          "pageNumber": 0,
+          "pageSize": 20
+        },
+        "totalElements": 15,
+        "totalPages": 1
+      }
+    }
+    ```
+  </Step>
+</Steps>
+
+<Info>
+By default, the category list returns 20 categories per page sorted by ID. You can customize pagination using the `page`, `size`, and `sort` query parameters.
+</Info>
+
+## View category details
+
+You can retrieve detailed information about a specific category using its ID.
+
+```bash
+curl https://api.example.com/api/categories/1
+```
+
+Response:
+
+```json
+{
+  "success": true,
+  "message": null,
+  "data": {
+    "id": 1,
+    "name": "Programming"
+  }
+}
+```
+
+<Note>
+Future versions may include additional category information such as descriptions, book counts, and subcategories.
+</Note>
+
+## Add a new category
+
+<Warning>
+Category management operations require administrator privileges. Ensure you're authenticated with an admin account.
+</Warning>
+
+Administrators can create new categories to organize books in the library.
+
+<Steps>
+  <Step title="Prepare category information">
+    Decide on a clear, descriptive name for your category. Category names should be specific enough to be useful but broad enough to contain multiple books.
+  </Step>
+
+  <Step title="Send create request">
+    Make a POST request to `/api/management/categories` with the Authorization header:
+
+    ```bash
+    curl -X POST https://api.example.com/api/management/categories \
+      -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "name": "Web Development"
+      }'
+    ```
+  </Step>
+
+  <Step title="Confirmation">
+    The system returns the newly created category with its assigned ID:
+
+    ```json
+    {
+      "success": true,
+      "message": null,
+      "data": {
+        "id": 4,
+        "name": "Web Development"
+      }
+    }
+    ```
+  </Step>
+</Steps>
+
+### Category creation requirements
+
+- **Name**: 2-100 characters, required
+
+<Info>
+Category names must be between 2 and 100 characters long. Choose names that will be meaningful to library users.
+</Info>
+
+## Update a category
+
+Administrators can update existing category names to improve clarity or fix spelling.
+
+<Steps>
+  <Step title="Identify category to update">
+    Get the ID of the category you want to update.
+  </Step>
+
+  <Step title="Send update request">
+    Make a PUT request to `/api/management/categories/{id}`:
+
+    ```bash
+    curl -X PUT https://api.example.com/api/management/categories/4 \
+      -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "name": "Web Development & Design"
+      }'
+    ```
+  </Step>
+
+  <Step title="Review updated category">
+    The system returns the updated category information:
+
+    ```json
+    {
+      "success": true,
+      "message": null,
+      "data": {
+        "id": 4,
+        "name": "Web Development & Design"
+      }
+    }
+    ```
+  </Step>
+</Steps>
+
+<Note>
+Updating a category name automatically updates the category name for all books in that category.
+</Note>
+
+## Delete a category
+
+Administrators can remove categories from the system when they're no longer needed.
+
+<Steps>
+  <Step title="Check for associated books">
+    Before deleting a category, ensure no books are currently assigned to it.
+
+    <Warning>
+    You cannot delete a category that contains books. Either move the books to a different category or delete the books first.
+    </Warning>
+  </Step>
+
+  <Step title="Send delete request">
+    Make a DELETE request to `/api/management/categories/{id}`:
+
+    ```bash
+    curl -X DELETE https://api.example.com/api/management/categories/4 \
+      -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+    ```
+  </Step>
+
+  <Step title="Confirmation">
+    The system confirms the deletion:
+
+    ```json
+    {
+      "success": true,
+      "message": "Category deleted successfully",
+      "data": null
+    }
+    ```
+  </Step>
+</Steps>
+
+## Using categories in book management
+
+When creating or updating books, you reference the category by its ID. Each book belongs to exactly one category:
+
+```json
+{
+  "isbn": "978-0-13-468599-1",
+  "title": "Clean Code",
+  "description": "A handbook of agile software craftsmanship",
+  "coverImageUrl": "https://example.com/covers/clean-code.jpg",
+  "authorIds": [2],
+  "categoryId": 1
+}
+```
+
+In this example, the book is assigned to category ID 1 (Programming).
+
+<Card title="Related workflows" icon="link" href="/features/book-management">
+  Learn how to create and manage books with categories
+</Card>
+
+## Category organization strategies
+
+Here are some strategies for organizing your library with categories:
+
+### Subject-based categories
+
+Organize books by academic or professional subjects:
+- Programming
+- Mathematics
+- Physics
+- History
+- Psychology
+
+### Genre-based categories
+
+Organize fiction books by literary genre:
+- Science Fiction
+- Mystery & Thriller
+- Romance
+- Fantasy
+- Historical Fiction
+
+### Hybrid approach
+
+Combine subject and genre categories to cover both fiction and non-fiction:
+- Fiction: Science Fiction
+- Fiction: Mystery
+- Non-Fiction: Technology
+- Non-Fiction: Biography
+- Non-Fiction: Business
+
+<Info>
+Choose a categorization strategy that makes sense for your library's collection and users. Consistency is more important than the specific system you choose.
+</Info>
+
+## Category workflow best practices
+
+Follow these best practices when managing categories:
+
+<Steps>
+  <Step title="Plan your taxonomy">
+    Before creating categories, plan out your organizational structure. Consider how users will browse and search for books.
+  </Step>
+
+  <Step title="Keep it simple">
+    Don't create too many categories. Users can become overwhelmed with too many options. Aim for 10-20 well-defined categories.
+  </Step>
+
+  <Step title="Use clear names">
+    Category names should be immediately understandable. Avoid abbreviations or jargon unless they're widely recognized.
+  </Step>
+
+  <Step title="Be consistent">
+    If you use plural forms for some categories ("Sciences"), use plural forms for all categories. If you use singular forms ("Science"), stick to that pattern.
+  </Step>
+
+  <Step title="Review periodically">
+    As your collection grows, review your categories to ensure they still make sense. You may need to add new categories or reorganize existing ones.
+  </Step>
+</Steps>
+
+## Common category management errors
+
+You may encounter these errors when managing categories:
+
+- **Category not found**: The specified category ID doesn't exist in the database
+- **Duplicate category name**: A category with this exact name already exists
+- **Category in use**: Cannot delete this category because it contains books
+- **Invalid name length**: The category name must be between 2 and 100 characters
+- **Unauthorized**: You must be an administrator to manage categories
+
+<Info>
+If you need to delete a category that contains books, first update those books to move them to a different category, then delete the empty category.
+</Info>

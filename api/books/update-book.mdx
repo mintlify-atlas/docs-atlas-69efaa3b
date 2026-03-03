@@ -1,0 +1,297 @@
+---
+title: 'Update Book'
+description: 'Update or partially update a book'
+api: 'PUT /api/management/books/{id}'
+---
+
+## Overview
+
+There are two methods for updating books:
+
+- **PUT**: Full replacement - all fields must be provided
+- **PATCH**: Partial update - only provide fields you want to change
+
+---
+
+## Full Update (PUT)
+
+### Endpoint
+
+```
+PUT /api/management/books/{id}
+```
+
+Completely replaces a book's data. All required fields must be provided.
+
+### Authentication
+
+Requires **ADMIN** role.
+
+### Path Parameters
+
+<ParamField path="id" type="long" required>
+  The unique identifier of the book to update
+</ParamField>
+
+### Request Body
+
+<ParamField body="isbn" type="string" required>
+  International Standard Book Number. Must be a valid ISBN-10 or ISBN-13.
+  
+  **Validation**: Cannot be blank, must be valid ISBN format
+</ParamField>
+
+<ParamField body="title" type="string" required>
+  Book title
+  
+  **Validation**: Cannot be blank, must be between 2 and 255 characters
+</ParamField>
+
+<ParamField body="description" type="string" required>
+  Detailed description of the book
+  
+  **Validation**: Cannot be blank, maximum 1000 characters
+</ParamField>
+
+<ParamField body="coverImageUrl" type="string" required>
+  URL to the book's cover image
+  
+  **Validation**: Cannot be blank, must be a valid URL format
+</ParamField>
+
+<ParamField body="authorIds" type="array" required>
+  Array of author IDs to associate with the book
+  
+  **Validation**: Cannot be empty, must contain at least one author ID
+</ParamField>
+
+<ParamField body="categoryId" type="long" required>
+  ID of the category this book belongs to
+  
+  **Validation**: Cannot be null
+</ParamField>
+
+### Example Request
+
+```bash
+curl -X PUT "https://api.example.com/api/management/books/1" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_ADMIN_TOKEN" \
+  -d '{
+    "isbn": "978-0-13-468599-1",
+    "title": "Effective Java (3rd Edition)",
+    "description": "Updated comprehensive guide to Java programming best practices, covering Java 7, 8, 9, and beyond.",
+    "coverImageUrl": "https://example.com/covers/effective-java-new.jpg",
+    "authorIds": [1],
+    "categoryId": 2
+  }'
+```
+
+### Example Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": 1,
+    "isbn": "9780134685991",
+    "title": "Effective Java (3rd Edition)",
+    "description": "Updated comprehensive guide to Java programming best practices, covering Java 7, 8, 9, and beyond.",
+    "coverImageUrl": "https://example.com/covers/effective-java-new.jpg",
+    "authors": [
+      {
+        "id": 1,
+        "name": "Joshua Bloch"
+      }
+    ],
+    "category": {
+      "id": 2,
+      "name": "Programming"
+    }
+  },
+  "message": null
+}
+```
+
+---
+
+## Partial Update (PATCH)
+
+### Endpoint
+
+```
+PATCH /api/management/books/{id}
+```
+
+Partially updates a book's data. Only provide the fields you want to change.
+
+### Authentication
+
+Requires **ADMIN** role.
+
+### Path Parameters
+
+<ParamField path="id" type="long" required>
+  The unique identifier of the book to update
+</ParamField>
+
+### Request Body
+
+All fields are optional. Only include fields you want to update.
+
+<ParamField body="isbn" type="string">
+  International Standard Book Number
+  
+  **Validation**: Must be valid ISBN format if provided
+</ParamField>
+
+<ParamField body="title" type="string">
+  Book title
+  
+  **Validation**: Must be between 2 and 255 characters if provided
+</ParamField>
+
+<ParamField body="description" type="string">
+  Book description
+  
+  **Validation**: Maximum 1000 characters if provided
+</ParamField>
+
+<ParamField body="coverImageUrl" type="string">
+  URL to the book's cover image
+  
+  **Validation**: Must be a valid URL format if provided
+</ParamField>
+
+<ParamField body="authorIds" type="array">
+  Array of author IDs to replace existing authors
+</ParamField>
+
+<ParamField body="categoryId" type="long">
+  ID of the category to assign
+</ParamField>
+
+### Example Request
+
+```bash
+curl -X PATCH "https://api.example.com/api/management/books/1" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_ADMIN_TOKEN" \
+  -d '{
+    "title": "Effective Java (3rd Edition)",
+    "coverImageUrl": "https://example.com/covers/effective-java-updated.jpg"
+  }'
+```
+
+### Example Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": 1,
+    "isbn": "9780134685991",
+    "title": "Effective Java (3rd Edition)",
+    "description": "A comprehensive guide to Java programming best practices and design patterns.",
+    "coverImageUrl": "https://example.com/covers/effective-java-updated.jpg",
+    "authors": [
+      {
+        "id": 1,
+        "name": "Joshua Bloch"
+      }
+    ],
+    "category": {
+      "id": 2,
+      "name": "Programming"
+    }
+  },
+  "message": null
+}
+```
+
+---
+
+## Error Responses
+
+### Book Not Found (404)
+
+```json
+{
+  "success": false,
+  "data": null,
+  "message": "Book not found with id: 999"
+}
+```
+
+### Validation Error (400)
+
+```json
+{
+  "success": false,
+  "data": null,
+  "message": "Validation failed",
+  "errors": {
+    "title": "Title must be between 2 and 255 characters",
+    "isbn": "Invalid ISBN format"
+  }
+}
+```
+
+### Unauthorized (401)
+
+```json
+{
+  "success": false,
+  "data": null,
+  "message": "Authentication required"
+}
+```
+
+### Forbidden (403)
+
+```json
+{
+  "success": false,
+  "data": null,
+  "message": "Access denied. ADMIN role required."
+}
+```
+
+### Duplicate ISBN (400)
+
+```json
+{
+  "success": false,
+  "data": null,
+  "message": "A book with this ISBN already exists"
+}
+```
+
+---
+
+## Notes
+
+### PUT vs PATCH
+
+- **PUT** requires all fields and performs a complete replacement
+- **PATCH** allows partial updates - only provide fields you want to change
+- Use **PUT** when you have complete book data
+- Use **PATCH** when you only want to update specific fields
+
+### ISBN Normalization
+
+The ISBN is automatically normalized before storage by removing all hyphens, spaces, and non-numeric characters (except 'X').
+
+### Relationships
+
+- **Authors**: Many-to-many relationship. Providing `authorIds` replaces all existing author associations
+- **Category**: Many-to-one relationship. Each book must belong to exactly one category
+
+### Validation
+
+- PUT requests validate all fields as required
+- PATCH requests only validate provided fields
+- ISBN must be unique across all books (except the current book being updated)
+- Both ISBN-10 and ISBN-13 formats are supported
+
+Source: BookManagementController.java:29-37, BookUpdateRequest.java:12-35, BookPatchRequest.java:9-26

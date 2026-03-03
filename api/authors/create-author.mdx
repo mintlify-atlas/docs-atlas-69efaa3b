@@ -1,0 +1,138 @@
+---
+title: 'Create Author'
+api: 'POST /api/management/authors'
+description: 'Create a new author in the system'
+---
+
+## Endpoint
+
+```
+POST /api/management/authors
+```
+
+## Authentication
+
+Requires authentication with a valid Bearer token and **ADMIN role**.
+
+## Request Body
+
+<ParamField body="name" type="string" required>
+  Full name of the author
+  
+  **Validation:**
+  - Cannot be blank
+  - Minimum length: 2 characters
+  - Maximum length: 100 characters
+</ParamField>
+
+## Response
+
+<ResponseField name="success" type="boolean" required>
+  Indicates if the request was successful
+</ResponseField>
+
+<ResponseField name="timestamp" type="string" required>
+  ISO 8601 timestamp of the response
+</ResponseField>
+
+<ResponseField name="data" type="object" required>
+  Created author details
+  
+  <ResponseField name="id" type="long" required>
+    Unique identifier for the newly created author
+  </ResponseField>
+  
+  <ResponseField name="name" type="string" required>
+    Full name of the author
+  </ResponseField>
+</ResponseField>
+
+## Example Request
+
+```bash
+curl -X POST "https://api.example.com/api/management/authors" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "George Orwell"
+  }'
+```
+
+## Example Response
+
+```json
+{
+  "success": true,
+  "timestamp": "2026-03-03T10:00:00Z",
+  "data": {
+    "id": 1,
+    "name": "George Orwell"
+  }
+}
+```
+
+## Error Responses
+
+### 400 Bad Request - Validation Error
+
+```json
+{
+  "success": false,
+  "timestamp": "2026-03-03T10:00:00Z",
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Author name cannot be blank",
+    "validationErrors": [
+      {
+        "field": "name",
+        "message": "Author name cannot be blank"
+      }
+    ]
+  }
+}
+```
+
+### 400 Bad Request - Name Too Short
+
+```json
+{
+  "success": false,
+  "timestamp": "2026-03-03T10:00:00Z",
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Author name must be between 2 and 100 characters",
+    "validationErrors": [
+      {
+        "field": "name",
+        "message": "Author name must be between 2 and 100 characters"
+      }
+    ]
+  }
+}
+```
+
+### 401 Unauthorized
+
+```json
+{
+  "success": false,
+  "timestamp": "2026-03-03T10:00:00Z",
+  "error": {
+    "code": "UNAUTHORIZED",
+    "message": "Authentication required"
+  }
+}
+```
+
+### 403 Forbidden
+
+```json
+{
+  "success": false,
+  "timestamp": "2026-03-03T10:00:00Z",
+  "error": {
+    "code": "FORBIDDEN",
+    "message": "Access denied. ADMIN role required"
+  }
+}
+```

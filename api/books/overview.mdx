@@ -1,0 +1,80 @@
+---
+title: 'Books API Overview'
+description: 'Manage books in the library system'
+---
+
+## Introduction
+
+The Books API allows you to manage books in the library system. Books are the core entities that represent physical or digital items in the library catalog.
+
+## Key Features
+
+- **ISBN Validation**: All books must have a valid ISBN (International Standard Book Number)
+- **Author Management**: Books have a many-to-many relationship with authors - each book can have multiple authors
+- **Category Assignment**: Each book belongs to one category
+- **Pagination Support**: List endpoints support pagination for efficient data retrieval
+- **Cover Images**: Books can include cover image URLs
+
+## Base URL
+
+```
+GET, LIST operations: /api/books
+CREATE, UPDATE, DELETE operations: /api/management/books
+```
+
+## Authentication
+
+- **Public Endpoints**: GET operations are publicly accessible
+- **Admin Endpoints**: POST, PUT, PATCH, and DELETE operations require ADMIN role
+
+## Available Endpoints
+
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| GET | `/api/books` | List all books with pagination | No |
+| GET | `/api/books/{id}` | Get a specific book by ID | No |
+| POST | `/api/management/books` | Create a new book | ADMIN |
+| PUT | `/api/management/books/{id}` | Update a book (full replacement) | ADMIN |
+| PATCH | `/api/management/books/{id}` | Partially update a book | ADMIN |
+| DELETE | `/api/management/books/{id}` | Delete a book | ADMIN |
+
+## Data Model
+
+### Book Object
+
+A book object contains the following fields:
+
+- **id**: Unique identifier (Long)
+- **isbn**: International Standard Book Number (validated)
+- **title**: Book title
+- **description**: Detailed description (max 1000 characters)
+- **coverImageUrl**: URL to the book's cover image
+- **authors**: Set of author objects (many-to-many relationship)
+- **category**: Category object (belongs to one category)
+
+## ISBN Validation
+
+ISBN values are automatically normalized by removing all non-numeric characters (except 'X'). Both ISBN-10 and ISBN-13 formats are supported. The system validates the ISBN format using the Hibernate validator.
+
+## Common Response Format
+
+All endpoints return responses wrapped in an `ApiResponse` object:
+
+```json
+{
+  "success": true,
+  "data": { /* response data */ },
+  "message": "Operation completed successfully"
+}
+```
+
+## Error Handling
+
+The API returns standard HTTP status codes:
+
+- **200**: Success
+- **400**: Bad Request (validation errors)
+- **401**: Unauthorized
+- **403**: Forbidden (insufficient permissions)
+- **404**: Not Found
+- **500**: Internal Server Error

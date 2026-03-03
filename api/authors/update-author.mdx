@@ -1,0 +1,157 @@
+---
+title: Update author
+api: PUT /api/management/authors/{id}
+description: Update an existing author's information
+---
+
+## Endpoint
+
+```
+PUT /api/management/authors/{id}
+```
+
+## Authentication
+
+Requires authentication with a valid Bearer token and **ADMIN role**.
+
+## Path Parameters
+
+<ParamField path="id" type="long" required>
+  Unique identifier of the author to update
+</ParamField>
+
+## Request Body
+
+<ParamField body="name" type="string" required>
+  Updated full name of the author
+  
+  **Validation:**
+  - Cannot be blank
+  - Minimum length: 2 characters
+  - Maximum length: 100 characters
+</ParamField>
+
+## Response
+
+<ResponseField name="success" type="boolean" required>
+  Indicates if the request was successful
+</ResponseField>
+
+<ResponseField name="timestamp" type="string" required>
+  ISO 8601 timestamp of the response
+</ResponseField>
+
+<ResponseField name="data" type="object" required>
+  Updated author details
+  
+  <ResponseField name="id" type="long" required>
+    Unique identifier for the author
+  </ResponseField>
+  
+  <ResponseField name="name" type="string" required>
+    Updated full name of the author
+  </ResponseField>
+</ResponseField>
+
+## Example Request
+
+```bash
+curl -X PUT "https://api.example.com/api/management/authors/1" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "George Orwell (Eric Arthur Blair)"
+  }'
+```
+
+## Example Response
+
+```json
+{
+  "success": true,
+  "timestamp": "2026-03-03T10:00:00Z",
+  "data": {
+    "id": 1,
+    "name": "George Orwell (Eric Arthur Blair)"
+  }
+}
+```
+
+## Error Responses
+
+### 400 Bad Request - Validation Error
+
+```json
+{
+  "success": false,
+  "timestamp": "2026-03-03T10:00:00Z",
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Author name cannot be blank",
+    "validationErrors": [
+      {
+        "field": "name",
+        "message": "Author name cannot be blank"
+      }
+    ]
+  }
+}
+```
+
+### 400 Bad Request - Name Too Long
+
+```json
+{
+  "success": false,
+  "timestamp": "2026-03-03T10:00:00Z",
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Author name must be between 2 and 100 characters",
+    "validationErrors": [
+      {
+        "field": "name",
+        "message": "Author name must be between 2 and 100 characters"
+      }
+    ]
+  }
+}
+```
+
+### 401 Unauthorized
+
+```json
+{
+  "success": false,
+  "timestamp": "2026-03-03T10:00:00Z",
+  "error": {
+    "code": "UNAUTHORIZED",
+    "message": "Authentication required"
+  }
+}
+```
+
+### 403 Forbidden
+
+```json
+{
+  "success": false,
+  "timestamp": "2026-03-03T10:00:00Z",
+  "error": {
+    "code": "FORBIDDEN",
+    "message": "Access denied. ADMIN role required"
+  }
+}
+```
+
+### 404 Not Found
+
+```json
+{
+  "success": false,
+  "timestamp": "2026-03-03T10:00:00Z",
+  "error": {
+    "code": "NOT_FOUND",
+    "message": "Author not found with id: 999"
+  }
+}
+```

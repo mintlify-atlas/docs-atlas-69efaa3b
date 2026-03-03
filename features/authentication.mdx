@@ -1,0 +1,195 @@
+---
+title: Authentication
+description: Learn how to authenticate users with JWT tokens and refresh tokens in the Library Management System
+---
+
+The Library Management System uses JWT (JSON Web Token) authentication to secure API endpoints. This authentication system includes access tokens for API requests and refresh tokens for obtaining new access tokens without re-entering credentials.
+
+## How authentication works
+
+When you log in, the system issues two tokens:
+
+- **Access token**: A short-lived JWT token used to authenticate API requests
+- **Refresh token**: A longer-lived token stored in the database that you can use to obtain new access tokens
+
+<Note>
+Access tokens are stateless and contain user claims. The system automatically cleans up expired refresh tokens to maintain database health.
+</Note>
+
+## Register a new account
+
+You can create a new user account by sending your details to the registration endpoint.
+
+<Steps>
+  <Step title="Send registration request">
+    Make a POST request to `/api/auth/register` with your account details:
+
+    ```json
+    {
+      "email": "john.doe@example.com",
+      "password": "SecurePass123!",
+      "firstName": "John",
+      "lastName": "Doe"
+    }
+    ```
+
+    <Info>
+    Your password must be at least 8 characters long. Names must be between 2 and 50 characters and can contain letters, spaces, periods, hyphens, and apostrophes.
+    </Info>
+  </Step>
+
+  <Step title="Registration confirmation">
+    On success, you'll receive a confirmation message:
+
+    ```json
+    {
+      "success": true,
+      "message": "User registered successfully. Please login.",
+      "data": null
+    }
+    ```
+  </Step>
+
+  <Step title="Proceed to login">
+    After registration, use the login endpoint to obtain your authentication tokens.
+  </Step>
+</Steps>
+
+### Registration requirements
+
+- **Email**: Must be a valid email address format
+- **Password**: Minimum 8 characters
+- **First name**: 2-50 characters, letters and common name characters only
+- **Last name**: 2-50 characters, letters and common name characters only
+
+## Log in to your account
+
+Authenticate with your credentials to receive access and refresh tokens.
+
+<Steps>
+  <Step title="Send login request">
+    Make a POST request to `/api/auth/login`:
+
+    ```json
+    {
+      "email": "john.doe@example.com",
+      "password": "SecurePass123!"
+    }
+    ```
+  </Step>
+
+  <Step title="Receive tokens">
+    The system returns both tokens in the response:
+
+    ```json
+    {
+      "success": true,
+      "message": null,
+      "data": {
+        "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+        "refreshToken": "550e8400-e29b-41d4-a716-446655440000"
+      }
+    }
+    ```
+  </Step>
+
+  <Step title="Store tokens securely">
+    Save both tokens securely in your application. You'll use the access token for subsequent API requests.
+  </Step>
+</Steps>
+
+## Make authenticated requests
+
+Once you have an access token, include it in the Authorization header of your API requests.
+
+```bash
+curl -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." \
+  https://api.example.com/api/users/me
+```
+
+<Warning>
+Never share your access token or refresh token. Store them securely and transmit them only over HTTPS connections.
+</Warning>
+
+## Refresh your access token
+
+When your access token expires, use your refresh token to obtain a new one without logging in again.
+
+<Steps>
+  <Step title="Send refresh request">
+    Make a POST request to `/api/auth/refresh` with your refresh token:
+
+    ```json
+    {
+      "refreshToken": "550e8400-e29b-41d4-a716-446655440000"
+    }
+    ```
+  </Step>
+
+  <Step title="Receive new access token">
+    The system issues a fresh access token:
+
+    ```json
+    {
+      "success": true,
+      "message": null,
+      "data": {
+        "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+      }
+    }
+    ```
+  </Step>
+
+  <Step title="Update stored token">
+    Replace your old access token with the new one for future requests.
+  </Step>
+</Steps>
+
+<Info>
+Your refresh token remains valid and doesn't change during the refresh operation. Only the access token is renewed.
+</Info>
+
+## Log out
+
+When you're done with your session, log out to invalidate your refresh token.
+
+<Steps>
+  <Step title="Send logout request">
+    Make a POST request to `/api/auth/logout`:
+
+    ```json
+    {
+      "refreshToken": "550e8400-e29b-41d4-a716-446655440000"
+    }
+    ```
+  </Step>
+
+  <Step title="Token invalidation">
+    The system removes your refresh token from the database, preventing it from being used to generate new access tokens.
+
+    ```json
+    {
+      "success": true,
+      "message": null,
+      "data": null
+    }
+    ```
+  </Step>
+
+  <Step title="Clear local tokens">
+    Delete both the access token and refresh token from your application's storage.
+  </Step>
+</Steps>
+
+## Common authentication errors
+
+You may encounter these errors when working with authentication:
+
+- **Invalid credentials**: Your email or password is incorrect
+- **Expired access token**: Use your refresh token to obtain a new access token
+- **Invalid refresh token**: The refresh token doesn't exist or has been revoked—log in again
+- **Email already exists**: This email is already registered—use a different email or log in instead
+
+<Note>
+The system includes automatic cleanup of expired refresh tokens to maintain optimal performance.
+</Note>
